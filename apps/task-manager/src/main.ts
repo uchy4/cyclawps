@@ -38,7 +38,7 @@ async function main() {
   runMigrations(db);
 
   // Seed default agents from YAML files
-  seedAgents(db, path.join(REPO_ROOT, 'agents'));
+  seedAgents(db, process.env['AGENTS_PATH'] || path.join(REPO_ROOT, 'agents'));
 
   // Seed example kanban tasks
   seedTasks(db);
@@ -60,6 +60,23 @@ async function main() {
   registerAgentRoutes(fastify);
   registerTranscribeRoutes(fastify);
   registerLogRoutes(fastify);
+
+  // Serve static dashboard files when running inside Electron (production)
+  if (process.env['STATIC_DIR']) {
+    const fastifyStatic = await import('@fastify/static');
+    await fastify.register(fastifyStatic.default, {
+      root: process.env['STATIC_DIR'],
+      prefix: '/',
+      wildcard: false,
+    });
+    // SPA fallback: serve index.html for non-API/non-socket routes
+    fastify.setNotFoundHandler((req, reply) => {
+      if (!req.url.startsWith('/api') && !req.url.startsWith('/socket.io')) {
+        return reply.sendFile('index.html');
+      }
+      return reply.code(404).send({ error: 'Not found' });
+    });
+  }
 
   // Start server
   await fastify.listen({ port: PORT, host: '0.0.0.0' });

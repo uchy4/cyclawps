@@ -3,5 +3,8 @@ dist/
 data/
 .env
 *.db
+models/
 .nx/
 .vite/
+
+test-output

@@ -2,10 +2,20 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "dashboard",
+      "name": "task-manager",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["vite", "--root", "apps/dashboard"],
-      "port": 4000
+      "runtimeArgs": ["tsx", "apps/task-manager/src/main.ts"],
+      "port": 3001,
+      "env": {
+        "TASK_MANAGER_PORT": "3001"
+      }
+    },
+    {
+      "name": "dashboard",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd apps/dashboard && npx vite"],
+      "port": 4000,
+      "autoPort": true
     }
   ]
 }
