@@ -32,10 +32,10 @@ export function Sidebar() {
 
   return (
     <nav className="w-16 lg:w-56 bg-slate-900 border-r border-slate-700 flex flex-col shrink-0">
-      <div className="p-4 border-b border-slate-700 flex justify-between items-center gap-1">
-        <img src="/favicon.svg" alt="Logo" className="h-12" />
-        <h1 className="text-2xl font-mono tracking-wider font-semibold text-white hidden lg:block mt-4">cy<span className="font-bold text-orange-400">CLAW</span>ps</h1>
-        <span className="text-lg lg:hidden block text-center"><img src="/favicon.svg" alt="Logo" className="h-8" /></span>
+      <div className="px-4 border-b border-slate-700 flex justify-between items-center gap-1">
+        <img src="/claw.svg" alt="Logo" className="h-14" />
+        <h1 className="text-2xl italic font-mono tracking-wider font-semibold text-white hidden lg:block mt-4">cy<span className="font-bold not-italic text-orange-400">CLAW</span>ps</h1>
+        <span className="text-lg lg:hidden block text-center"><img src="/claw.svg" alt="Logo" className="h-8" /></span>
       </div>
       <div className="flex flex-col gap-0.5 p-2 flex-1 overflow-y-auto">
         {/* Kanban */}
