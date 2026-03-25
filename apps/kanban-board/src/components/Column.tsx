@@ -10,7 +10,7 @@ function ColumnTopDrop({ status }: { status: string }) {
   });
 
   return (
-    <div ref={setNodeRef} className="relative shrink-0" style={{ minHeight: 8 }}>
+    <div ref={setNodeRef}>
       {isOver && (
         <div className="absolute bottom-0 left-2 right-2 h-[3px] bg-violet-500 rounded-full z-10 shadow-[0_0_6px_rgba(139,92,246,0.5)]" />
       )}
@@ -33,7 +33,7 @@ export function Column({ status, label, color, tasks, onClickTask, onCreateTask 
   return (
     <div className="flex flex-col h-full overflow-hidden">
       {/* Sticky header */}
-      <div className="flex items-center justify-between mb-4 px-1 shrink-0">
+      <div className="flex items-center justify-between mb-2 px-4 shrink-0">
         <div className="flex items-center gap-2.5">
           <div
             aria-hidden="true"
@@ -59,7 +59,7 @@ export function Column({ status, label, color, tasks, onClickTask, onCreateTask 
       {/* Scrollable card area — pr-2 pushes scrollbar toward the divider */}
       <div
         ref={setNodeRef}
-        className={`flex-1 overflow-y-auto overflow-x-hidden overscroll-contain pr-2 transition-colors rounded-xl ${
+        className={`flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 transition-colors rounded-xl ${
           isOver ? 'bg-violet-600/5' : ''
         }`}
       >

@@ -14,7 +14,7 @@ export default defineConfig({
         enabled: false, // Disable SW in dev — prevents stale cache issues
       },
       manifest: {
-        name: 'Agents Manager',
+        name: 'Cyclawps',
         short_name: 'Agents',
         description: 'AI Agent Orchestration Dashboard',
         start_url: '/',

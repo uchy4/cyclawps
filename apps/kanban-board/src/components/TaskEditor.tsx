@@ -27,6 +27,7 @@ export function TaskEditor({ task, defaultStatus, onSave, onDelete, onClose }: T
     status: defaultStatus || 'todo',
     assignedAgent: '',
     priority: 0,
+    sortOrder: 0,
   });
   const [agents, setAgents] = useState<Array<{ role: string; name: string; displayName: string | null }>>([]);
 
@@ -47,6 +48,7 @@ export function TaskEditor({ task, defaultStatus, onSave, onDelete, onClose }: T
         status: task.status,
         assignedAgent: task.assignedAgent || '',
         priority: task.priority,
+        sortOrder: task.sortOrder ?? 0,
       });
     }
   }, [task]);
@@ -108,8 +110,8 @@ export function TaskEditor({ task, defaultStatus, onSave, onDelete, onClose }: T
         />
       </div>
 
-      {/* Status + Priority row */}
-      <div className="grid grid-cols-2 gap-4">
+      {/* Status + Priority + Order row */}
+      <div className="grid grid-cols-3 gap-4">
         <div>
           <label htmlFor="task-status" className={labelClass}>Status</label>
           <select
@@ -137,6 +139,19 @@ export function TaskEditor({ task, defaultStatus, onSave, onDelete, onClose }: T
             className={inputClass}
           />
           <p className="text-xs text-slate-500 mt-1">0–10, higher = more urgent</p>
+        </div>
+        <div>
+          <label htmlFor="task-order" className={labelClass}>Order</label>
+          <input
+            id="task-order"
+            name="sortOrder"
+            type="number"
+            min={0}
+            value={formData.sortOrder ?? 0}
+            onChange={(e) => updateField('sortOrder', parseInt(e.target.value, 10) || 0)}
+            className={inputClass}
+          />
+          <p className="text-xs text-slate-500 mt-1">Position in column</p>
         </div>
       </div>
 

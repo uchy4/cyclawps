@@ -228,7 +228,7 @@ export function Board({ connected, initialTaskGuid }: { connected?: boolean; ini
       >
         <div className="flex w-full h-full divide-x divide-slate-700/50">
           {COLUMNS.map((col) => (
-            <div key={col.status} className="flex-1 min-w-[280px] px-4 first:pl-0 last:pr-0 flex flex-col h-full overflow-hidden">
+            <div key={col.status} className="flex-1 min-w-[280px] first:pl-0 last:pr-0 flex flex-col h-full overflow-hidden">
               <Column
                 status={col.status}
                 label={col.label}

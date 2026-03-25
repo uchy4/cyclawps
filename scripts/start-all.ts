@@ -65,7 +65,7 @@ function prefixStream(name: string, color: string, stream: NodeJS.ReadableStream
   });
 }
 
-console.log('\x1b[1m--- Agents Manager: Starting all services ---\x1b[0m\n');
+console.log('\x1b[1m--- Cyclawps: Starting all services ---\x1b[0m\n');
 
 for (const service of services) {
   console.log(`${service.color}[${service.name}]${RESET} Starting in ${service.cwd}`);

@@ -32,21 +32,22 @@ export function Sidebar() {
 
   return (
     <nav className="w-16 lg:w-56 bg-slate-900 border-r border-slate-700 flex flex-col shrink-0">
-      <div className="p-4 border-b border-slate-700">
-        <h1 className="text-sm font-semibold text-white hidden lg:block">Agents Manager</h1>
-        <span className="text-lg lg:hidden block text-center">AM</span>
+      <div className="p-4 border-b border-slate-700 flex justify-between items-baseline gap-3">
+        <img src="/favicon.svg" alt="Logo" className="h-12" />
+        <h1 className="text-2xl font-mono tracking-wider font-semibold text-white hidden lg:block">Cy<span className="font-bold text-orange-400 text-[1.75rem]">CLAW</span>ps</h1>
+        <span className="text-lg lg:hidden block text-center"><img src="/favicon.svg" alt="Logo" className="h-8" /></span>
       </div>
       <div className="flex flex-col gap-0.5 p-2 flex-1 overflow-y-auto">
         {/* Kanban */}
         <NavLink
           to="/kanban"
           className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+            `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
               isActive ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
             }`
           }
         >
-          <LayoutGrid className="w-4 h-4 shrink-0" />
+          <LayoutGrid className="w-6 h-6 shrink-0" />
           <span className="hidden lg:inline">Kanban</span>
         </NavLink>
 
@@ -54,11 +55,11 @@ export function Sidebar() {
         <div>
           <button
             onClick={() => setChatExpanded(!chatExpanded)}
-            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors cursor-pointer ${
+            className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors cursor-pointer ${
               isChatActive ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
             }`}
           >
-            <MessageSquare className="w-4 h-4 shrink-0" />
+            <MessageSquare className="w-6 h-6 shrink-0" />
             <span className="hidden lg:inline flex-1 text-left">Chat</span>
             <ChevronRight className={`hidden lg:inline w-3.5 h-3.5 transition-transform ${chatExpanded ? 'rotate-90' : ''}`} />
           </button>
@@ -69,7 +70,7 @@ export function Sidebar() {
                 to="/chat"
                 end
                 className={({ isActive }) =>
-                  `flex items-center gap-2 px-3 py-1.5 rounded-md text-xs transition-colors ${
+                  `flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
                     isActive ? 'text-violet-400 font-medium' : 'text-slate-500 hover:text-slate-300'
                   }`
                 }
@@ -82,7 +83,7 @@ export function Sidebar() {
                   key={agent.role}
                   to={`/chat/${agent.role}`}
                   className={({ isActive }) =>
-                    `flex items-center gap-2 px-3 py-1.5 rounded-md text-xs transition-colors ${
+                    `flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
                       isActive ? 'text-violet-400 font-medium' : 'text-slate-500 hover:text-slate-300'
                     }`
                   }
@@ -99,17 +100,17 @@ export function Sidebar() {
         <NavLink
           to="/configurator"
           className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+            `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
               isActive ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
             }`
           }
         >
-          <Bot className="w-4 h-4 shrink-0" />
+          <Bot className="w-6 h-6 shrink-0" />
           <span className="hidden lg:inline">Agents</span>
         </NavLink>
       </div>
       <div className="p-3 border-t border-slate-700">
-        <div className="text-[10px] text-slate-500 hidden lg:block">Agents Manager v0.1</div>
+        <div className="text-[10px] text-slate-500 hidden lg:block">Cyclawps v0.1</div>
       </div>
     </nav>
   );
