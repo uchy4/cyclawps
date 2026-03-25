@@ -1,0 +1,10 @@
+{
+  "name": "@agents-manager/kanban-board",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "vite --port 4200",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}

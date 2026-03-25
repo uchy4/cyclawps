@@ -1,0 +1,21 @@
+{
+  "name": "dashboard",
+  "tags": ["scope:dashboard"],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx vite --port 4000",
+        "cwd": "apps/dashboard"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx vite build",
+        "cwd": "apps/dashboard"
+      },
+      "cache": true
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "name": "chat-client",
+  "tags": ["scope:chat"],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx vite --port 4201",
+        "cwd": "apps/chat-client"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "npx vite build",
+        "cwd": "apps/chat-client"
+      },
+      "cache": true
+    }
+  }
+}

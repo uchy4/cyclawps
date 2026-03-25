@@ -1,0 +1,10 @@
+{
+  "name": "@agents-manager/agent-configurator",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "vite --port 4202",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}

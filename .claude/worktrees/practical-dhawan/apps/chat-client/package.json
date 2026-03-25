@@ -1,0 +1,10 @@
+{
+  "name": "@agents-manager/chat-client",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "vite --port 4201",
+    "build": "vite build",
+    "preview": "vite preview"
+  }
+}
