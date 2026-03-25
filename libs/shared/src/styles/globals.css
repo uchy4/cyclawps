@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* Ensure Tailwind scans all sub-app component sources for class names */
+@source "../../../../apps/kanban-board/src/**/*.tsx";
+@source "../../../../apps/chat-client/src/**/*.tsx";
+@source "../../../../apps/agent-configurator/src/**/*.tsx";
+@source "../../../../apps/dashboard/src/**/*.tsx";
+@source "../../**/*.{ts,tsx}";
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+.animate-slide-in {
+  animation: slide-in-right 0.2s ease-out;
+}
+
+@keyframes slide-out-right {
+  from { transform: translateX(0); }
+  to { transform: translateX(100%); }
+}
+
+.animate-slide-out {
+  animation: slide-out-right 0.2s ease-in;
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scrollbar styling (Prism pattern) */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #475569;
+    border-radius: 4px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #64748b;
+  }
+}
