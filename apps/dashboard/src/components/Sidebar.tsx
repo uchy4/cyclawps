@@ -8,7 +8,11 @@ interface AgentInfo {
   displayName: string | null;
 }
 
-export function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+}
+
+export function Sidebar({ collapsed }: SidebarProps) {
   const [agents, setAgents] = useState<AgentInfo[]>([]);
   const [chatExpanded, setChatExpanded] = useState(false);
   const location = useLocation();
@@ -29,16 +33,12 @@ export function Sidebar() {
   }, []);
 
   const isChatActive = location.pathname.startsWith('/chat');
+  const showLabels = !collapsed;
 
   return (
-    <nav className="w-16 lg:w-56 bg-slate-900 border-r border-slate-700 flex flex-col shrink-0">
-      <div className="px-4 flex justify-between items-center gap-1 border-b-2 border-orange-400">
-        <img src="/claw.svg" alt="Logo" className="h-14" />
-        <h1 className="text-2xl italic text-slate-500 font-mono tracking-wider font-semibold hidden lg:block mt-2 uppercase ">cy<span className="font-bold not-italic text-orange-400">CLAW</span>ps</h1>
-        <span className="text-lg lg:hidden block text-center"><img src="/claw.svg" alt="Logo" className="h-8" /></span>
-      </div>
+    <nav className={`${collapsed ? 'w-14' : 'w-20 lg:w-60'} bg-slate-800 border-r border-slate-700 flex flex-col shrink-0 transition-all duration-200`}>
       <div className="flex flex-col gap-0.5 p-2 flex-1 overflow-y-auto">
-        {/* Kanban */}
+        {/* Tasks */}
         <NavLink
           to="/kanban"
           className={({ isActive }) =>
@@ -47,8 +47,8 @@ export function Sidebar() {
             }`
           }
         >
-          <LayoutGrid className="w-6 h-6 shrink-0" />
-          <span className="hidden lg:inline">Kanban</span>
+          <LayoutGrid className="w-4 h-4 shrink-0" />
+          {showLabels && <span className="hidden lg:inline">Tasks</span>}
         </NavLink>
 
         {/* Chat section with sub-items */}
@@ -59,19 +59,19 @@ export function Sidebar() {
               isChatActive ? 'bg-slate-800 text-white font-medium' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
             }`}
           >
-            <MessageSquare className="w-6 h-6 shrink-0" />
-            <span className="hidden lg:inline flex-1 text-left">Chat</span>
-            <ChevronRight className={`hidden lg:inline w-3.5 h-3.5 transition-transform ${chatExpanded ? 'rotate-90' : ''}`} />
+            <MessageSquare className="w-4 h-4 shrink-0" />
+            {showLabels && <span className="hidden lg:inline flex-1 text-left">Chat</span>}
+            {showLabels && <ChevronRight className={`hidden lg:inline w-3.5 h-3.5 transition-transform ${chatExpanded ? 'rotate-90' : ''}`} />}
           </button>
 
-          {chatExpanded && (
+          {chatExpanded && showLabels && (
             <div className="hidden lg:flex flex-col gap-0.5 ml-5 mt-0.5">
               <NavLink
                 to="/chat"
                 end
                 className={({ isActive }) =>
                   `flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
-                    isActive ? 'text-violet-400 font-medium' : 'text-slate-500 hover:text-slate-300'
+                    isActive ? 'text-orange-400 font-medium' : 'text-slate-500 hover:text-slate-300'
                   }`
                 }
               >
@@ -84,11 +84,11 @@ export function Sidebar() {
                   to={`/chat/${agent.role}`}
                   className={({ isActive }) =>
                     `flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
-                      isActive ? 'text-violet-400 font-medium' : 'text-slate-500 hover:text-slate-300'
+                      isActive ? 'text-orange-400 font-medium' : 'text-slate-500 hover:text-slate-300'
                     }`
                   }
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-orange-500" />
                   {agent.displayName || agent.name}
                 </NavLink>
               ))}
@@ -105,12 +105,12 @@ export function Sidebar() {
             }`
           }
         >
-          <Bot className="w-6 h-6 shrink-0" />
-          <span className="hidden lg:inline">Agents</span>
+          <Bot className="w-4 h-4 shrink-0" />
+          {showLabels && <span className="hidden lg:inline">Agents</span>}
         </NavLink>
       </div>
       <div className="p-3 border-t border-slate-700">
-        <div className="text-[10px] text-slate-500 hidden lg:block">Cyclawps v0.1</div>
+        {showLabels && <div className="text-[10px] text-slate-500 hidden lg:block">Cyclawps v0.1</div>}
       </div>
     </nav>
   );

@@ -40,9 +40,9 @@ When creating new agents in the agents-manager, the user wants agentic help from
 
 - Fixed overlay (same pattern as `Drawer.tsx` — `fixed inset-0 z-50`, black/50 backdrop, Escape to close)
 - Centered modal panel, `max-w-5xl`
-- Two side-by-side columns: "Before" (left) and "After" (right, violet left border accent)
+- Two side-by-side columns: "Before" (left) and "After" (right, orange left border accent)
 - Both display prompt text in `font-mono text-[13px] bg-slate-950` panels
-- Footer: "Accept" (violet primary button) and "Dismiss" (outline secondary)
+- Footer: "Accept" (orange primary button) and "Dismiss" (outline secondary)
 - Props: `original`, `refined`, `onAccept(refined)`, `onDismiss()`
 
 ### 3b: Integrate into AgentEditor.tsx
@@ -50,7 +50,7 @@ When creating new agents in the agents-manager, the user wants agentic help from
 
 - Add state: `refining` (boolean), `refineResult` ({ original, refined } | null)
 - Add "Clarify with Claude" button below the textarea (only visible when prompt is non-empty)
-- Button uses `Sparkles` icon from `lucide-react`, violet outline style
+- Button uses `Sparkles` icon from `lucide-react`, orange outline style
 - On click: calls `/api/agents/refine-prompt`, shows loading state
 - On success: opens `PromptRefineModal`
 - Accept: updates `formData.systemPrompt` with refined text, clears modal

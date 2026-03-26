@@ -60,6 +60,8 @@ export default class App {
       height: height,
       show: false,
       backgroundColor: '#0d1117',
+      titleBarStyle: 'hiddenInset',
+      trafficLightPosition: { x: 16, y: 16 },
       webPreferences: {
         contextIsolation: true,
         backgroundThrottling: false,
@@ -80,10 +82,8 @@ export default class App {
 
   private static loadMainWindow() {
     if (!App.application.isPackaged) {
-      // Dev: load from Vite dev server (which proxies /api to task-manager)
       App.mainWindow!.loadURL(`http://localhost:${rendererAppPort}`);
     } else {
-      // Prod: load from task-manager which serves static dashboard files
       App.mainWindow!.loadURL('http://localhost:3001');
     }
   }

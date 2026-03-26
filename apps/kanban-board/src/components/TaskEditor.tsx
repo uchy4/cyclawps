@@ -8,7 +8,7 @@ const STATUSES: { value: TaskStatus; label: string }[] = [
   { value: 'done', label: 'Done' },
 ];
 
-const inputClass = 'w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white placeholder-slate-400 text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none transition-colors';
+const inputClass = 'w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white placeholder-slate-400 text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors';
 const labelClass = 'block text-sm font-medium text-slate-300 mb-1.5';
 
 interface TaskEditorProps {
@@ -186,14 +186,14 @@ export function TaskEditor({ task, defaultStatus, onSave, onDelete, onClose }: T
         <button
           onClick={handleSave}
           disabled={saving || !formData.title?.trim()}
-          className="px-6 py-2.5 rounded-lg bg-violet-600 text-white font-medium text-sm hover:bg-violet-700 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none transition-colors disabled:opacity-50 disabled:cursor-default cursor-pointer"
+          className="px-6 py-2.5 rounded-lg bg-orange-600 text-white font-medium text-sm hover:bg-orange-700 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors disabled:opacity-50 disabled:cursor-default cursor-pointer"
         >
           {saving ? 'Saving…' : task ? 'Update Task' : 'Create Task'}
         </button>
         {task && onDelete && (
           <button
             onClick={handleDelete}
-            className="px-4 py-2.5 rounded-lg border border-red-500/30 text-red-400 text-sm hover:bg-red-500/10 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-lg border border-red-500/30 text-red-400 text-sm hover:bg-red-500/10 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors cursor-pointer"
           >
             Delete
           </button>

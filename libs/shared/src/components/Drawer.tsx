@@ -58,7 +58,7 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
           <button
             onClick={onClose}
             aria-label="Close"
-            className="text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+            className="text-slate-400 hover:text-white transition-colors p-1 rounded-md hover:bg-slate-800 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none"
           >
             <svg aria-hidden="true" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

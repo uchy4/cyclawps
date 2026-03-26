@@ -117,7 +117,7 @@ export function AgentWizard({ editRole, onClose }: AgentWizardProps) {
           {step < STEPS.length - 1 ? (
             <button
               onClick={() => setStep((s) => s + 1)}
-              className="px-4 py-2 rounded-md border-none bg-violet-600 text-white cursor-pointer"
+              className="px-4 py-2 rounded-md border-none bg-orange-600 text-white cursor-pointer"
             >
               Next
             </button>
@@ -126,7 +126,7 @@ export function AgentWizard({ editRole, onClose }: AgentWizardProps) {
               onClick={handleSave}
               disabled={saving}
               className={`px-4 py-2 rounded-md border-none text-white ${
-                saving ? 'bg-slate-800 cursor-default' : 'bg-violet-600 cursor-pointer'
+                saving ? 'bg-slate-800 cursor-default' : 'bg-orange-600 cursor-pointer'
               }`}
             >
               {saving ? 'Saving...' : editRole ? 'Update Agent' : 'Create Agent'}

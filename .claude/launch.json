@@ -16,6 +16,13 @@
       "runtimeArgs": ["-c", "cd apps/dashboard && npx vite"],
       "port": 4000,
       "autoPort": true
+    },
+    {
+      "name": "whisper-service",
+      "runtimeExecutable": "bash",
+      "runtimeArgs": ["-c", "cd apps/whisper-service && source .venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port 4002 --reload"],
+      "port": 4002,
+      "autoPort": false
     }
   ]
 }

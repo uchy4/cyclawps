@@ -40,14 +40,14 @@ export function ToolsStep({ data, onChange }: ToolsStepProps) {
             <label
               key={tool}
               className={`flex items-center gap-3 px-3.5 py-2.5 rounded-md border cursor-pointer ${
-                isSelected ? 'border-violet-500 bg-violet-600/5' : 'border-slate-700 bg-transparent'
+                isSelected ? 'border-orange-500 bg-orange-600/5' : 'border-slate-700 bg-transparent'
               }`}
             >
               <input
                 type="checkbox"
                 checked={isSelected}
                 onChange={() => toggleTool(tool)}
-                className="accent-violet-600"
+                className="accent-orange-600"
               />
               <div>
                 <div className="text-sm font-medium">{tool}</div>

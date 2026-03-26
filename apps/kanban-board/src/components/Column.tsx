@@ -12,7 +12,7 @@ function ColumnTopDrop({ status }: { status: string }) {
   return (
     <div ref={setNodeRef}>
       {isOver && (
-        <div className="absolute bottom-0 left-2 right-2 h-[3px] bg-violet-500 rounded-full z-10 shadow-[0_0_6px_rgba(139,92,246,0.5)]" />
+        <div className="absolute bottom-0 left-2 right-2 h-[3px] bg-orange-500 rounded-full z-10 shadow-[0_0_6px_rgba(139,92,246,0.5)]" />
       )}
     </div>
   );
@@ -49,7 +49,7 @@ export function Column({ status, label, color, tasks, onClickTask, onCreateTask 
           <button
             onClick={() => onCreateTask(status)}
             aria-label={`Add new task to ${label}`}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-violet-400 hover:bg-violet-600/20 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-orange-400 hover:bg-orange-600/20 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors cursor-pointer"
           >
             <Plus aria-hidden="true" className="w-4 h-4" />
           </button>
@@ -60,7 +60,7 @@ export function Column({ status, label, color, tasks, onClickTask, onCreateTask 
       <div
         ref={setNodeRef}
         className={`flex-1 overflow-y-auto overflow-x-hidden overscroll-contain px-4 transition-colors rounded-xl ${
-          isOver ? 'bg-violet-600/5' : ''
+          isOver ? 'bg-orange-600/5' : ''
         }`}
       >
         <div className="flex flex-col gap-4">
@@ -71,7 +71,7 @@ export function Column({ status, label, color, tasks, onClickTask, onCreateTask 
           <button
             onClick={() => onCreateTask(status)}
             aria-label={`Add new task to ${label}`}
-            className="w-full min-h-[56px] border-2 border-dashed border-slate-600 rounded-2xl text-slate-400 hover:border-violet-500 hover:text-violet-400 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none transition-colors flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            className="w-full min-h-[56px] border-2 border-dashed border-slate-600 rounded-2xl text-slate-400 hover:border-orange-500 hover:text-orange-400 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors flex items-center justify-center gap-2 cursor-pointer shrink-0"
           >
             <Plus aria-hidden="true" className="w-5 h-5" />
             <span className="text-base font-medium">New</span>

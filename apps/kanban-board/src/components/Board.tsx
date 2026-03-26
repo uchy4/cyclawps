@@ -263,7 +263,7 @@ export function Board({ connected, initialTaskGuid }: { connected?: boolean; ini
                 onClick={() => setActiveTab('edit')}
                 className={`px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
                   activeTab === 'edit'
-                    ? 'text-white border-b-2 border-violet-500'
+                    ? 'text-white border-b-2 border-orange-500'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >
@@ -273,7 +273,7 @@ export function Board({ connected, initialTaskGuid }: { connected?: boolean; ini
                 onClick={() => setActiveTab('logs')}
                 className={`px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
                   activeTab === 'logs'
-                    ? 'text-white border-b-2 border-violet-500'
+                    ? 'text-white border-b-2 border-orange-500'
                     : 'text-slate-400 hover:text-slate-200'
                 }`}
               >

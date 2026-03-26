@@ -55,7 +55,7 @@ export function TaskLogs({ taskGuid }: TaskLogsProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search logs..."
-          className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white placeholder-slate-400 text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none transition-colors"
+          className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white placeholder-slate-400 text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors"
         />
       </div>
 
@@ -126,7 +126,7 @@ function InlineSegment({ text }: { text: string }) {
     <>
       {parts.map((part, i) =>
         part.startsWith('`') && part.endsWith('`') ? (
-          <code key={i} className="px-1 py-0.5 rounded bg-slate-700 text-violet-300 text-xs font-mono">
+          <code key={i} className="px-1 py-0.5 rounded bg-slate-700 text-orange-300 text-xs font-mono">
             {part.slice(1, -1)}
           </code>
         ) : (

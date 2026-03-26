@@ -24,7 +24,7 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   Agent: 'Sub-agents',
 };
 
-const inputClass = 'w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white placeholder-slate-400 text-sm focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none transition-colors';
+const inputClass = 'w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white placeholder-slate-400 text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors';
 const labelClass = 'block text-sm font-medium text-slate-300 mb-1.5';
 
 interface AgentEditorProps {
@@ -195,7 +195,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
                 aria-pressed={isSelected}
                 className={`px-3 py-2 rounded-lg text-sm text-left transition-colors ${
                   isSelected
-                    ? 'bg-violet-600/20 border border-violet-500/50 text-violet-400'
+                    ? 'bg-orange-600/20 border border-orange-500/50 text-orange-400'
                     : 'bg-slate-800 border border-slate-700 text-slate-400 hover:border-slate-600'
                 }`}
               >
@@ -228,14 +228,14 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
         <button
           onClick={handleSave}
           disabled={saving || !formData.name || !formData.role || !formData.systemPrompt}
-          className="px-6 py-2.5 rounded-lg bg-violet-600 text-white font-medium text-sm hover:bg-violet-700 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none transition-colors disabled:opacity-50 disabled:cursor-default cursor-pointer"
+          className="px-6 py-2.5 rounded-lg bg-orange-600 text-white font-medium text-sm hover:bg-orange-700 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors disabled:opacity-50 disabled:cursor-default cursor-pointer"
         >
           {saving ? 'Saving...' : editRole ? 'Update Agent' : 'Create Agent'}
         </button>
         {editRole && (
           <button
             onClick={handleDelete}
-            className="px-4 py-2.5 rounded-lg border border-red-500/30 text-red-400 text-sm hover:bg-red-500/10 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none transition-colors cursor-pointer"
+            className="px-4 py-2.5 rounded-lg border border-red-500/30 text-red-400 text-sm hover:bg-red-500/10 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors cursor-pointer"
           >
             Delete
           </button>

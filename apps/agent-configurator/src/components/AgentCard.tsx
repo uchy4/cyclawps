@@ -13,7 +13,7 @@ export function AgentCard({ agent, onClick }: AgentCardProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-violet-500/50 hover:shadow-lg hover:shadow-violet-500/5 transition-colors cursor-pointer group focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none"
+      className="w-full text-left bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/5 transition-colors cursor-pointer group focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none"
     >
       {/* Avatar + Name */}
       <div className="flex items-start gap-4 mb-4">
@@ -24,7 +24,7 @@ export function AgentCard({ agent, onClick }: AgentCardProps) {
           {initials}
         </div>
         <div className="min-w-0">
-          <h3 className="text-base font-semibold text-white truncate group-hover:text-violet-400 transition-colors">
+          <h3 className="text-base font-semibold text-white truncate group-hover:text-orange-400 transition-colors">
             {agent.displayName || agent.name}
           </h3>
           <p className="text-xs text-slate-400">{agent.role}</p>
@@ -43,7 +43,7 @@ export function AgentCard({ agent, onClick }: AgentCardProps) {
 
       {/* Meta badges */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-700/50 text-violet-400">
+        <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-700/50 text-orange-400">
           {agent.model.replace('claude-', '').replace('-4-6', '').replace('-4-5', '')}
         </span>
         <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400">

@@ -50,7 +50,7 @@
 - [x] Chat client with agent sub-nav and @mention targeting
 - [x] Agent configurator with card grid + slide-out drawer editor
 - [x] Unified PWA dashboard with sidebar routing
-- [x] Prism design system (Inter font, slate/violet, dark mode)
+- [x] Prism design system (Inter font, slate/orange, dark mode)
 - [x] Nx project tags + module boundary enforcement
 - [x] Nx targets for all projects (serve, build)
 - [x] Per-agent env vars with ANTHROPIC_API_KEY fallback

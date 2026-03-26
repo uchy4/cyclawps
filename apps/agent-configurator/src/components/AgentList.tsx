@@ -16,12 +16,7 @@ export function AgentList({ onCreate, onEdit }: AgentListProps) {
 
   return (
     <div className="p-8">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h2 className="text-xl font-semibold text-white">Agents</h2>
-          <p className="text-sm text-slate-400 mt-1">{agents.length} agent{agents.length !== 1 ? 's' : ''} configured</p>
-        </div>
-      </div>
+      <p className="text-sm text-slate-400 mb-8">{agents.length} agent{agents.length !== 1 ? 's' : ''} configured</p>
 
       <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>
         {agents.map((agent) => (

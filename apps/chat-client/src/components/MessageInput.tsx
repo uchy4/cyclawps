@@ -50,7 +50,7 @@ export function MessageInput({ onSend, connected, targetAgent }: MessageInputPro
           disabled={!connected || !text.trim()}
           className={`px-5 py-2.5 rounded-lg border-none text-sm font-medium self-end ${
             connected && text.trim()
-              ? 'bg-violet-600 hover:bg-violet-700 text-white cursor-pointer'
+              ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer'
               : 'bg-slate-700 text-slate-500 cursor-default'
           }`}
         >

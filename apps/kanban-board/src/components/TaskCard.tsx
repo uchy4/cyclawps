@@ -17,8 +17,8 @@ export const TaskCard = forwardRef<HTMLButtonElement, TaskCardProps & React.HTML
         type="button"
         onClick={onClick}
         style={style}
-        className={`min-w-[150px] min-h-[150px] bg-slate-800 rounded-2xl p-5 border border-slate-700/80 hover:border-violet-500/40 shadow-sm shadow-black/20 focus-visible:ring-2 focus-visible:ring-violet-500 focus-visible:outline-none transition-colors cursor-pointer flex flex-col text-left w-full ${
-          isDragging ? 'opacity-50 shadow-lg shadow-violet-500/10 border-violet-500/50 z-50' : ''
+        className={`min-w-[150px] min-h-[150px] bg-slate-800 rounded-2xl p-5 border border-slate-700/80 hover:border-orange-500/40 shadow-sm shadow-black/20 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors cursor-pointer flex flex-col text-left w-full ${
+          isDragging ? 'opacity-50 shadow-lg shadow-orange-500/10 border-orange-500/50 z-50' : ''
         } ${className || ''}`}
         {...dragProps}
       >
@@ -40,7 +40,7 @@ export const TaskCard = forwardRef<HTMLButtonElement, TaskCardProps & React.HTML
             </span>
           )}
           {task.pipelineStageId && (
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-violet-600/20 text-violet-400">
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-orange-600/20 text-orange-400">
               {task.pipelineStageId}
             </span>
           )}

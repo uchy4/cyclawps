@@ -24,14 +24,14 @@ export function SortableTaskCard({ task, onClick }: SortableTaskCardProps) {
   return (
     <div ref={setDropRef} className="relative">
       {isOver && !isDragging && (
-        <div className="absolute -top-2.5 left-2 right-2 h-[3px] bg-violet-500 rounded-full z-10 shadow-[0_0_6px_rgba(139,92,246,0.5)]" />
+        <div className="absolute -top-2.5 left-2 right-2 h-[3px] bg-orange-500 rounded-full z-10 shadow-[0_0_6px_rgba(139,92,246,0.5)]" />
       )}
       <div ref={setDragRef} {...attributes} {...listeners}>
         <TaskCard
           task={task}
           onClick={onClick}
           isDragging={isDragging}
-          className={isDragging ? '!opacity-30 !border-violet-500/50' : ''}
+          className={isDragging ? '!opacity-30 !border-orange-500/50' : ''}
         />
       </div>
     </div>

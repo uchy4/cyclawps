@@ -15,7 +15,7 @@ export function AuthorizationBanner({ auth, onAuthorize }: AuthorizationBannerPr
       </div>
       <button
         onClick={() => onAuthorize(auth.taskId, auth.stageId, true)}
-        className="px-4 py-1.5 rounded-md border-none bg-violet-600 text-white cursor-pointer text-[13px]"
+        className="px-4 py-1.5 rounded-md border-none bg-orange-600 text-white cursor-pointer text-[13px]"
       >
         Approve
       </button>

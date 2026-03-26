@@ -37,7 +37,7 @@ When creating a new agent, the system prompt textarea is a plain text field with
   - Two-panel layout: "Original" (left) / "Refined by Claude" (right)
   - Both panels use monospace `pre` styling, scrollable
   - Changes list shown as small bullets below panels
-  - "Accept" button (violet primary) → calls `onAccept` which sets the refined prompt
+  - "Accept" button (orange primary) → calls `onAccept` which sets the refined prompt
   - "Keep Original" button (outline secondary) → calls `onReject` which dismisses comparison
   - Responsive: stacks vertically on narrow screens
 
