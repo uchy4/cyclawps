@@ -31,8 +31,8 @@ export function registerAgentRoutes(fastify: FastifyInstance): void {
     const id = uuid();
 
     db.prepare(
-      `INSERT INTO agent_configs (id, role, name, display_name, description, system_prompt, model, api_key_env, max_turns, tools, logging_enabled, is_seeded, created_at, updated_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
+      `INSERT INTO agent_configs (id, role, name, display_name, description, system_prompt, model, api_key_env, max_turns, tools, logging_enabled, accent_color, is_seeded, created_at, updated_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?)`
     ).run(
       id,
       input.role,
@@ -45,6 +45,7 @@ export function registerAgentRoutes(fastify: FastifyInstance): void {
       input.maxTurns || 10,
       JSON.stringify(input.tools || ['Read', 'Glob', 'Grep']),
       input.loggingEnabled !== false ? 1 : 0,
+      input.accentColor || null,
       now,
       now
     );
@@ -71,6 +72,7 @@ export function registerAgentRoutes(fastify: FastifyInstance): void {
     if (input.maxTurns !== undefined) { fields.push('max_turns = ?'); values.push(input.maxTurns); }
     if (input.tools !== undefined) { fields.push('tools = ?'); values.push(JSON.stringify(input.tools)); }
     if (input.loggingEnabled !== undefined) { fields.push('logging_enabled = ?'); values.push(input.loggingEnabled ? 1 : 0); }
+    if (input.accentColor !== undefined) { fields.push('accent_color = ?'); values.push(input.accentColor || null); }
 
     if (fields.length === 0) return reply.code(400).send({ error: 'No fields to update' });
 

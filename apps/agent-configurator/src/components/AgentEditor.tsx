@@ -1,7 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useAgents } from '../hooks/useAgents.js';
-import { AVAILABLE_TOOLS } from '@agents-manager/shared';
+import { AVAILABLE_TOOLS, ROLE_COLORS } from '@agents-manager/shared';
 import type { CreateAgentConfigInput } from '@agents-manager/shared';
+
+const PRESET_COLORS = [
+  '#a371f7', '#58a6ff', '#3fb950', '#d29922', '#8b949e',
+  '#f97316', '#ef4444', '#ec4899', '#06b6d4', '#84cc16',
+];
 
 const MODELS = [
   { value: 'claude-sonnet-4-6', label: 'Sonnet 4.6' },
@@ -45,6 +50,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
     apiKeyEnv: '',
     maxTurns: 10,
     tools: ['Read', 'Glob', 'Grep'],
+    accentColor: '',
   });
 
   const { createAgent, updateAgent, getAgent, deleteAgent } = useAgents();
@@ -63,6 +69,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
             apiKeyEnv: agent.apiKeyEnv,
             maxTurns: agent.maxTurns,
             tools: agent.tools,
+            accentColor: agent.accentColor || ROLE_COLORS[agent.role] || '',
           });
         }
       });
@@ -129,6 +136,38 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
           <div>
             <label htmlFor="agent-description" className={labelClass}>Description</label>
             <textarea id="agent-description" name="description" value={formData.description || ''} onChange={(e) => updateField('description', e.target.value)} placeholder="What does this agent do..." rows={2} className={`${inputClass} resize-y`} />
+          </div>
+          <div>
+            <label className={labelClass}>Accent Color</label>
+            <div className="flex items-center gap-2 flex-wrap">
+              {PRESET_COLORS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => updateField('accentColor', c)}
+                  className={`w-7 h-7 rounded-full border-2 cursor-pointer transition-transform hover:scale-110 ${
+                    formData.accentColor === c ? 'border-white scale-110' : 'border-transparent'
+                  }`}
+                  style={{ backgroundColor: c }}
+                  title={c}
+                />
+              ))}
+              <div className="relative">
+                <input
+                  type="color"
+                  value={formData.accentColor || '#8b949e'}
+                  onChange={(e) => updateField('accentColor', e.target.value)}
+                  className="w-7 h-7 rounded-full cursor-pointer border-0 bg-transparent [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-2 [&::-webkit-color-swatch]:border-slate-600"
+                  title="Custom color"
+                />
+              </div>
+            </div>
+            {formData.accentColor && (
+              <div className="flex items-center gap-2 mt-2">
+                <span className="w-4 h-4 rounded-full" style={{ backgroundColor: formData.accentColor }} />
+                <span className="text-xs text-slate-400 font-mono">{formData.accentColor}</span>
+              </div>
+            )}
           </div>
         </div>
       </section>

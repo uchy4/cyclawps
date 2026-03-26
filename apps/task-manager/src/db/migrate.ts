@@ -31,5 +31,35 @@ export function runMigrations(db: Database.Database): void {
     db.exec('ALTER TABLE agent_configs ADD COLUMN logging_enabled INTEGER NOT NULL DEFAULT 1');
   }
 
+  // Add attachments column to messages
+  if (!columnExists(db, 'messages', 'attachments')) {
+    console.log('Adding attachments column to messages...');
+    db.exec("ALTER TABLE messages ADD COLUMN attachments TEXT DEFAULT '[]'");
+  }
+
+  // Add agent_role column to messages for agent DMs
+  if (!columnExists(db, 'messages', 'agent_role')) {
+    console.log('Adding agent_role column to messages...');
+    db.exec('ALTER TABLE messages ADD COLUMN agent_role TEXT DEFAULT NULL');
+  }
+
+  // Add accent_color column to agent_configs
+  if (!columnExists(db, 'agent_configs', 'accent_color')) {
+    console.log('Adding accent_color column to agent_configs...');
+    db.exec('ALTER TABLE agent_configs ADD COLUMN accent_color TEXT DEFAULT NULL');
+    // Backfill seeded agents with default colors
+    const defaults: Record<string, string> = {
+      project_manager: '#a371f7',
+      architect: '#58a6ff',
+      developer: '#3fb950',
+      tester: '#d29922',
+      gopher: '#8b949e',
+    };
+    const update = db.prepare('UPDATE agent_configs SET accent_color = ? WHERE role = ?');
+    for (const [role, color] of Object.entries(defaults)) {
+      update.run(color, role);
+    }
+  }
+
   console.log('Migrations complete.');
 }

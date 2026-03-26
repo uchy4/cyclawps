@@ -7,7 +7,7 @@
     "serve": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "source apps/whisper-service/.venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port ${WHISPER_PORT:-4001} --reload",
+        "command": "source .venv/bin/activate && uvicorn main:app --host 0.0.0.0 --port ${WHISPER_PORT:-4002} --reload",
         "cwd": "apps/whisper-service"
       }
     },

@@ -1,4 +1,4 @@
-import type { Task, Message, TaskLog, AgentRunStatus, PipelineRunStatus } from './index.js';
+import type { Task, Message, Reaction, Attachment, TaskLog, AgentRunStatus, PipelineRunStatus } from './index.js';
 
 // Server -> Client events
 export interface ServerToClientEvents {
@@ -7,6 +7,7 @@ export interface ServerToClientEvents {
   'task:deleted': (data: { taskId: string }) => void;
   'task:log': (data: { log: TaskLog }) => void;
   'message:new': (data: { message: Message }) => void;
+  'message:reaction': (data: { messageId: string; reaction: Reaction; action: 'add' | 'remove' }) => void;
   'agent:status': (data: { role: string; status: AgentRunStatus; taskId?: string }) => void;
   'agent:streaming': (data: { role: string; taskId: string; chunk: string }) => void;
   'pipeline:stage': (data: { taskId: string; stageId: string; status: PipelineRunStatus }) => void;
@@ -16,6 +17,7 @@ export interface ServerToClientEvents {
 
 // Client -> Server events
 export interface ClientToServerEvents {
-  'message:send': (data: { content: string; taskId?: string }) => void;
+  'message:send': (data: { content: string; taskId?: string; inReplyTo?: string; attachments?: Attachment[] }) => void;
+  'message:react': (data: { messageId: string; emoji: string }) => void;
   'pipeline:authorize': (data: { taskId: string; stageId: string; approved: boolean }) => void;
 }

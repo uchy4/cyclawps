@@ -14,6 +14,7 @@ export interface AgentConfig {
   maxTurns: number;
   tools: string[];
   loggingEnabled: boolean;
+  accentColor: string | null;
   isSeeded: boolean;
   createdAt: number;
   updatedAt: number;
@@ -30,6 +31,7 @@ export interface CreateAgentConfigInput {
   maxTurns?: number;
   tools?: string[];
   loggingEnabled?: boolean;
+  accentColor?: string;
 }
 
 export interface UpdateAgentConfigInput {
@@ -42,6 +44,7 @@ export interface UpdateAgentConfigInput {
   maxTurns?: number;
   tools?: string[];
   loggingEnabled?: boolean;
+  accentColor?: string;
 }
 
 export interface AgentRun {

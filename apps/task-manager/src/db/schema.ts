@@ -82,6 +82,15 @@ CREATE TABLE IF NOT EXISTS task_logs (
   created_at INTEGER NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS reactions (
+  id TEXT PRIMARY KEY,
+  message_id TEXT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+  emoji TEXT NOT NULL,
+  reactor TEXT NOT NULL DEFAULT 'user',
+  created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_reactions_message_id ON reactions(message_id);
 CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_assigned_agent ON tasks(assigned_agent);
 CREATE INDEX IF NOT EXISTS idx_tasks_guid ON tasks(guid);

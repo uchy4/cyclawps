@@ -10,6 +10,7 @@ interface DrawerProps {
 export function Drawer({ open, onClose, title, children }: DrawerProps) {
   const drawerRef = useRef<HTMLDivElement>(null);
   const [isClosing, setIsClosing] = useState(false);
+  const isElectron = typeof window !== 'undefined' && !!document.getElementById('electron-titlebar');
 
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (e.key === 'Escape') onClose();
@@ -37,7 +38,7 @@ export function Drawer({ open, onClose, title, children }: DrawerProps) {
   if (!open && !isClosing) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end">
+    <div className={`fixed inset-x-0 bottom-0 ${isElectron ? 'top-[2.5rem]' : 'top-0'} z-50 flex justify-end`}>
       <div
         role="presentation"
         className={`absolute inset-0 bg-black/50 transition-opacity duration-200 ${isClosing ? 'opacity-0' : 'opacity-100'}`}

@@ -14,6 +14,7 @@ export function rowToAgentConfig(row: Record<string, unknown>): AgentConfig {
     maxTurns: row['max_turns'] as number,
     tools: JSON.parse((row['tools'] as string) || '[]'),
     loggingEnabled: row['logging_enabled'] !== 0,
+    accentColor: (row['accent_color'] as string) || null,
     isSeeded: Boolean(row['is_seeded']),
     createdAt: row['created_at'] as number,
     updatedAt: row['updated_at'] as number,

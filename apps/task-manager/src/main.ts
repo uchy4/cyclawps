@@ -16,12 +16,13 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { seedAgents } from '@agents-manager/agents';
 import { seedTasks } from './db/seed-tasks.js';
+import { seedMessages } from './db/seed-messages.js';
 import type { ServerToClientEvents, ClientToServerEvents } from '@agents-manager/shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
-const PORT = parseInt(process.env['TASK_MANAGER_PORT'] || '3000', 10);
+const PORT = parseInt(process.env['TASK_MANAGER_PORT'] || '3001', 10);
 
 async function main() {
   const fastify = Fastify({ logger: true });
@@ -40,8 +41,9 @@ async function main() {
   // Seed default agents from YAML files
   seedAgents(db, process.env['AGENTS_PATH'] || path.join(REPO_ROOT, 'agents'));
 
-  // Seed example kanban tasks
+  // Seed example kanban tasks and messages
   seedTasks(db);
+  seedMessages(db);
 
   // Decorate fastify with db
   fastify.decorate('db', db);

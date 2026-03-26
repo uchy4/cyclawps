@@ -1,15 +1,27 @@
 import { useLocation } from 'react-router-dom';
-import { formatRoleName, useSocket } from '@agents-manager/shared';
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
+import { useSocket } from '@agents-manager/shared';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import type { Task } from '@agents-manager/shared';
 
 function usePageTitle(): string {
   const location = useLocation();
   const path = location.pathname;
+  const [task, setTask] = useState<Task | null>(null);
 
-  if (path.startsWith('/chat/')) {
-    const role = path.split('/chat/')[1];
-    return role ? formatRoleName(role) : 'Team Chat';
-  }
+  const taskMatch = path.match(/^\/chat\/task\/(.+)$/);
+  const taskId = taskMatch?.[1] || null;
+
+  useEffect(() => {
+    if (!taskId) { setTask(null); return; }
+    fetch(`/api/tasks/${taskId}`)
+      .then(r => r.json())
+      .then(data => setTask(data))
+      .catch(() => setTask(null));
+  }, [taskId]);
+
+  if (taskId && task) return `${task.guid} — ${task.title}`;
+  if (taskId) return 'Thread';
   if (path.startsWith('/chat')) return 'Team Chat';
   if (path.startsWith('/kanban')) return 'Tasks';
   if (path.startsWith('/configurator')) return 'Agents';
@@ -29,11 +41,11 @@ export function Header({ collapsed, onToggle }: HeaderProps) {
 
   return (
     <header className="flex items-center bg-slate-800 border-b-2 border-orange-400 shrink-0">
-      <div className={`${collapsed ? 'w-14' : 'w-20 lg:w-60'} px-4 flex items-center gap-4 shrink-0 border-r border-slate-700 transition-all duration-200`}>
-        <img src="/claw.svg" alt="Logo" className="h-14" />
+      <div className={`${collapsed ? 'w-14' : 'w-20 lg:w-60'} flex justify-center items-center gap-3 shrink-0 border-r border-slate-700 transition-all duration-200`}>
+        <img src="/claw.svg" alt="Logo" className={collapsed ? "w-8 h-12 m-2" : "h-12 m-2"} />
         {!collapsed && (
-          <h1 className="text-2xl italic text-slate-500 font-mono tracking-wider font-semibold hidden lg:block uppercase">
-            cy<span className="font-bold not-italic text-orange-400">CLAW</span>ps
+          <h1 className="text-2xl text-slate-500 font-mono tracking-wider font-semibold hidden lg:block">
+            cy<span className="font-bold italic text-orange-400 pr-[2px]">CLAW</span>ps
           </h1>
         )}
       </div>

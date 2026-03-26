@@ -244,7 +244,7 @@ export function Board({ connected, initialTaskGuid }: { connected?: boolean; ini
         <DragOverlay dropAnimation={null}>
           {activeTask ? (
             <div className="rotate-1 scale-[1.02] opacity-90">
-              <TaskCard task={activeTask} onClick={() => {}} />
+              <TaskCard task={activeTask} onClick={() => { /* */ }} />
             </div>
           ) : null}
         </DragOverlay>

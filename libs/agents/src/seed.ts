@@ -14,6 +14,7 @@ interface AgentSeedConfig {
   maxTurns?: number;
   tools?: string[];
   loggingEnabled?: boolean;
+  accentColor?: string;
   systemPrompt: string;
 }
 
@@ -34,8 +35,8 @@ export function seedAgents(db: Database.Database, agentsDir?: string): void {
   console.log(`Found ${files.length} agent seed file(s)`);
 
   const insertStmt = db.prepare(
-    `INSERT OR IGNORE INTO agent_configs (id, role, name, display_name, description, system_prompt, model, api_key_env, max_turns, tools, logging_enabled, is_seeded, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`
+    `INSERT OR IGNORE INTO agent_configs (id, role, name, display_name, description, system_prompt, model, api_key_env, max_turns, tools, logging_enabled, accent_color, is_seeded, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)`
   );
 
   for (const file of files) {
@@ -49,6 +50,14 @@ export function seedAgents(db: Database.Database, agentsDir?: string): void {
     }
 
     const now = Date.now();
+    const DEFAULT_ACCENT_COLORS: Record<string, string> = {
+      project_manager: '#a371f7',
+      architect: '#58a6ff',
+      developer: '#3fb950',
+      tester: '#d29922',
+      gopher: '#8b949e',
+    };
+
     const result = insertStmt.run(
       uuid(),
       config.role,
@@ -61,6 +70,7 @@ export function seedAgents(db: Database.Database, agentsDir?: string): void {
       config.maxTurns || 10,
       JSON.stringify(config.tools || ['Read', 'Glob', 'Grep']),
       config.loggingEnabled !== false ? 1 : 0,
+      config.accentColor || DEFAULT_ACCENT_COLORS[config.role] || null,
       now,
       now
     );

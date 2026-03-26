@@ -3,25 +3,14 @@
   "version": "0.0.0",
   "license": "MIT",
   "scripts": {
-    "serve:server": "nx run task-manager:serve",
-    "serve:kanban": "nx run kanban-board:serve",
-    "serve:chat": "nx run chat-client:serve",
-    "serve:configurator": "nx run agent-configurator:serve",
-    "serve:dashboard": "nx run dashboard:serve",
-    "start": "nx run-many --target=serve --projects=task-manager,dashboard --parallel",
-    "start:all": "nx run-many --target=serve --all --parallel",
+    "dev": "NX_DAEMON=false nx run-many --target=serve --projects=task-manager,dashboard,whisper-service --parallel",
+    "dev:server": "NX_DAEMON=false nx run task-manager:serve",
+    "dev:ui": "NX_DAEMON=false nx run dashboard:serve",
+    "dev:desktop": "NX_DAEMON=false nx run-many --target=serve --projects=dashboard,desktop --parallel",
     "build": "nx run-many --target=build --all",
-    "build:dashboard": "nx run dashboard:build",
-    "start:desktop": "nx run-many --target=serve --projects=dashboard,desktop --parallel",
-    "postinstall": "electron-builder install-app-deps",
-    "nxe:build:frontend": "nx build dashboard",
-    "nxe:build:backend": "nx build desktop",
-    "nxe:serve:frontend": "nx serve dashboard",
-    "nxe:serve:backend": "nx serve desktop",
-    "nxe:test:frontend": "nx test dashboard",
-    "nxe:test:backend": "nx test desktop",
-    "nxe:package:app": "nx run desktop:make --prepackgeOnly",
-    "nxe:make:app": "nx run desktop:make"
+    "desktop:make": "nx run desktop:make",
+    "kill-ports": "for p in 3000 3001 4000 4001 4002 4200 4201 4202; do lsof -ti :$p 2>/dev/null; done | sort -u | xargs kill -9 2>/dev/null; echo 'All dev ports cleared'",
+    "postinstall": "electron-builder install-app-deps"
   },
   "private": true,
   "devDependencies": {
@@ -46,7 +35,7 @@
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-react": "^4.3.0",
     "drizzle-kit": "^0.31.10",
-    "electron": "^34.5.6",
+    "electron": "^35.7.5",
     "eslint": "^9.8.0",
     "eslint-config-prettier": "^10.0.0",
     "jest": "^30.0.2",
@@ -98,5 +87,10 @@
     "vite-plugin-pwa": "^1.2.0",
     "whisper-web-transcriber": "^0.2.5",
     "zod": "^4.3.6"
+  },
+  "overrides": {
+    "picomatch": "4.0.4",
+    "serialize-javascript": "7.0.5",
+    "esbuild": "0.25.12"
   }
 }
