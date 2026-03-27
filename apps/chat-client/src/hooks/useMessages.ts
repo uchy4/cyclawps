@@ -25,7 +25,9 @@ export function useMessages(threadId?: string, agentRole?: string) {
     fetch(`/api/messages?${params}`)
       .then((r) => r.json())
       .then((data) => {
-        setMessages(data);
+        // Thread endpoint returns an envelope { thread, messages }; others return a flat array
+        const msgs = Array.isArray(data) ? data : data.messages;
+        setMessages(msgs);
         setLoading(false);
       })
       .catch((err) => {

@@ -86,7 +86,30 @@ export function registerMessageRoutes(fastify: FastifyInstance): void {
     const messageIds = rows.map(r => r['id'] as string);
     const reactionsMap = getReactionsForMessages(db, messageIds);
 
-    return rows.map((r) => rowToMessage(r, reactionsMap.get(r['id'] as string) || []));
+    const messages = rows.map((r) => rowToMessage(r, reactionsMap.get(r['id'] as string) || []));
+
+    // When fetching by thread_id, return an envelope with thread context for agent consumption
+    if (thread_id) {
+      const threadRow = db.prepare('SELECT id, name FROM threads WHERE id = ?').get(thread_id) as { id: string; name: string } | undefined;
+      const taggedTaskIds = (db.prepare(
+        'SELECT task_id FROM thread_tasks WHERE thread_id = ?'
+      ).all(thread_id) as { task_id: string }[]).map(r => r.task_id);
+      const agentRoles = (db.prepare(
+        'SELECT agent_role FROM thread_participants WHERE thread_id = ?'
+      ).all(thread_id) as { agent_role: string }[]).map(r => r.agent_role);
+
+      return {
+        thread: {
+          id: thread_id,
+          name: threadRow?.name || null,
+          taggedTaskIds,
+          agentRoles,
+        },
+        messages,
+      };
+    }
+
+    return messages;
   });
 
   // Create message

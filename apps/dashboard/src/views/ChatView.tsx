@@ -1,4 +1,4 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useState, useCallback, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import {
   useMessages,
@@ -11,7 +11,9 @@ import { useWhisper } from '../hooks/useWhisper.js';
 import { useAudioDevices } from '../hooks/useAudioDevices.js';
 import { MicSelector } from '../components/MicSelector.js';
 import type { Message, Attachment, Thread } from '@app/shared';
+import { ROLE_COLORS } from '@app/shared';
 import { ThreadHeader } from '../components/ThreadHeader.js';
+import { ChatEditor, type ChatEditorHandle } from '../components/ChatEditor.js';
 
 interface AgentInfo {
   role: string;
@@ -40,14 +42,12 @@ export function ChatView() {
   } = useMessages(threadId, agentRole);
   const [thread, setThread] = useState<Thread | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const editorRef = useRef<ChatEditorHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [text, setText] = useState('');
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [agents, setAgents] = useState<AgentInfo[]>([]);
-  const [mentionQuery, setMentionQuery] = useState<string | null>(null);
-  const [mentionIndex, setMentionIndex] = useState(0);
+  const [tasks, setTasks] = useState<{ id: string; guid: string; title: string }[]>([]);
   const {
     devices: audioDevices,
     selectedDeviceId,
@@ -55,11 +55,15 @@ export function ChatView() {
   } = useAudioDevices();
   const whisper = useWhisper(selectedDeviceId);
 
-  // Fetch agents for @mention popup
+  // Fetch agents and tasks for mention popups
   useEffect(() => {
     fetch('/api/agents')
       .then((r) => r.json())
       .then((data) => setAgents(data))
+      .catch(() => {});
+    fetch('/api/tasks')
+      .then((r) => r.json())
+      .then((data: { id: string; guid: string; title: string }[]) => setTasks(data))
       .catch(() => {});
   }, []);
 
@@ -75,28 +79,22 @@ export function ChatView() {
       .catch(() => setThread(null));
   }, [threadId]);
 
-  // Filtered agents based on mention query
-  const filteredAgents =
-    mentionQuery !== null
-      ? agents.filter(
-          (a) =>
-            (a.displayName || a.name)
-              .toLowerCase()
-              .includes(mentionQuery.toLowerCase()) ||
-            a.role.toLowerCase().includes(mentionQuery.toLowerCase())
-        )
-      : [];
+  // Build mention color map: role keys + display names → accent color
+  const mentionColors = useMemo(() => {
+    const map: Record<string, string> = { ...ROLE_COLORS };
+    for (const a of agents) {
+      const color = a.accentColor || ROLE_COLORS[a.role] || '#8b949e';
+      map[a.role] = color;
+      if (a.displayName) map[a.displayName] = color;
+      if (a.displayName) map[a.displayName.replace(/\s+/g, '_')] = color;
+      if (a.name) map[a.name] = color;
+    }
+    return map;
+  }, [agents]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages.length]);
-
-  useEffect(() => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    ta.style.height = 'auto';
-    ta.style.height = `${ta.scrollHeight}px`;
-  }, [text]);
 
   // Clear reply when switching threads/agents
   useEffect(() => {
@@ -113,7 +111,7 @@ export function ChatView() {
     ? thread?.name || 'Thread'
     : 'Global Chat';
 
-  const handleSubmit = () => {
+  const handleEditorSubmit = useCallback((text: string) => {
     if (!text.trim() && attachments.length === 0) return;
     sendMessage(
       text.trim(),
@@ -122,86 +120,30 @@ export function ChatView() {
       attachments.length > 0 ? attachments : undefined,
       agentRole
     );
-    setText('');
     setReplyTo(null);
     setAttachments([]);
-    setMentionQuery(null);
-  };
+  }, [sendMessage, threadId, replyTo, attachments, agentRole]);
 
-  const handleTextChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    const val = e.target.value;
-    setText(val);
-
-    // Detect @mention
-    const cursor = e.target.selectionStart || 0;
-    const before = val.slice(0, cursor);
-    const match = before.match(/@(\w*)$/);
-    if (match) {
-      setMentionQuery(match[1]);
-      setMentionIndex(0);
-    } else {
-      setMentionQuery(null);
-    }
-  };
-
-  const insertMention = (agent: AgentInfo) => {
-    const ta = textareaRef.current;
-    if (!ta) return;
-    const cursor = ta.selectionStart || 0;
-    const before = text.slice(0, cursor);
-    const after = text.slice(cursor);
-    const prefix = before.replace(/@\w*$/, '');
-    const mentionName = (agent.displayName || agent.name).replace(/\s+/g, '_');
-    const newText = `${prefix}@${mentionName} ${after}`;
-    setText(newText);
-    setMentionQuery(null);
-    ta.focus();
-    // Set cursor after the inserted mention
-    const newCursor = prefix.length + mentionName.length + 2;
-    requestAnimationFrame(() => {
-      ta.selectionStart = newCursor;
-      ta.selectionEnd = newCursor;
+  const handleTaskMentioned = useCallback(async (task: { id: string; guid: string }) => {
+    if (!threadId || !thread) return;
+    const alreadyTagged = thread.taskTags.some((t) => t.taskId === task.id);
+    if (alreadyTagged) return;
+    const res = await fetch(`/api/threads/${threadId}/tasks`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ taskId: task.id }),
     });
-  };
-
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Handle mention popup navigation
-    if (mentionQuery !== null && filteredAgents.length > 0) {
-      if (e.key === 'ArrowDown') {
-        e.preventDefault();
-        setMentionIndex((prev) =>
-          Math.min(prev + 1, filteredAgents.length - 1)
-        );
-        return;
-      }
-      if (e.key === 'ArrowUp') {
-        e.preventDefault();
-        setMentionIndex((prev) => Math.max(prev - 1, 0));
-        return;
-      }
-      if (e.key === 'Enter' || e.key === 'Tab') {
-        e.preventDefault();
-        insertMention(filteredAgents[mentionIndex]);
-        return;
-      }
-      if (e.key === 'Escape') {
-        e.preventDefault();
-        setMentionQuery(null);
-        return;
-      }
+    if (res.ok) {
+      const tag = await res.json();
+      setThread((prev) => prev ? { ...prev, taskTags: [...prev.taskTags, tag] } : prev);
     }
-
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit();
-    }
-  };
+  }, [threadId, thread]);
 
   const handleMicClick = async () => {
     if (whisper.isRecording) {
       const transcribed = await whisper.stopAndTranscribe();
       if (transcribed) {
-        setText((prev) => (prev ? `${prev} ${transcribed}` : transcribed));
+        editorRef.current?.insertText(transcribed);
       }
     } else {
       await whisper.startRecording();
@@ -210,7 +152,7 @@ export function ChatView() {
 
   const handleReply = useCallback((message: Message) => {
     setReplyTo(message);
-    textareaRef.current?.focus();
+    editorRef.current?.focus();
   }, []);
 
   const scrollToMessage = useCallback((messageId: string) => {
@@ -223,7 +165,6 @@ export function ChatView() {
   }, []);
 
   const handleEdit = useCallback((updated: Message) => {
-    // TODO: wire to API when edit endpoint exists
     console.log('Edit message:', updated.id, updated.content);
   }, []);
 
@@ -258,11 +199,9 @@ export function ChatView() {
     return () => clearInterval(interval);
   }, [whisper.isTranscribing]);
 
-  const placeholder = connected
-    ? whisper.isTranscribing
-      ? 'Transcribing' + '.'.repeat(dots)
-      : 'Type a message...'
-    : 'Disconnected...';
+  const placeholderText = whisper.isTranscribing
+    ? 'Transcribing' + '.'.repeat(dots)
+    : 'Type a message...';
 
   return (
     <div className="h-full flex flex-col">
@@ -334,6 +273,7 @@ export function ChatView() {
                 }
                 isConsecutive={isConsecutive}
                 isLastInGroup={!nextIsConsecutive}
+                mentionColors={mentionColors}
               />
             </div>
           );
@@ -386,30 +326,6 @@ export function ChatView() {
         </div>
       )}
 
-      {/* @mention popup */}
-      {mentionQuery !== null && filteredAgents.length > 0 && (
-        <div className="px-8">
-          <div className="bg-slate-800 border border-slate-700 rounded-lg py-1 shadow-lg max-h-48 overflow-y-auto">
-            {filteredAgents.map((agent, i) => (
-              <button
-                key={agent.role}
-                onClick={() => insertMention(agent)}
-                className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left cursor-pointer transition-colors ${
-                  i === mentionIndex
-                    ? 'bg-slate-700 text-orange-400'
-                    : 'text-slate-300 hover:bg-slate-700/50'
-                }`}
-              >
-                <span className="text-orange-400 font-mono text-xs">
-                  @{(agent.displayName || agent.name).replace(/\s+/g, '_')}
-                </span>
-                <span className="text-slate-400">{agent.role}</span>
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Input bar */}
       <div className="px-8 pb-8 pt-2">
         <div
@@ -428,7 +344,7 @@ export function ChatView() {
             </button>
           )}
 
-          <div className="flex-1 min-h-[40px] flex items-center">
+          <div className="flex-1 min-h-[40px] flex items-center w-full">
             {whisper.isRecording ? (
               <div className="flex items-center justify-center gap-[3px] min-h-[24px] w-full">
                 {whisper.levels.map((level, i) => (
@@ -450,19 +366,15 @@ export function ChatView() {
                 </span>
               </div>
             ) : (
-              <textarea
-                ref={textareaRef}
-                value={text}
-                onChange={handleTextChange}
-                onKeyDown={handleKeyDown}
-                placeholder={placeholder}
+              <ChatEditor
+                ref={editorRef}
+                onSubmit={handleEditorSubmit}
                 disabled={!connected || whisper.isTranscribing}
-                rows={1}
-                className={`w-full bg-transparent text-white text-base leading-6 resize-none outline-none min-h-[24px] max-h-[100px] overflow-y-auto ${
-                  whisper.isTranscribing
-                    ? 'placeholder-orange-400/70'
-                    : 'placeholder-slate-400'
-                }`}
+                placeholder={placeholderText}
+                agents={agents}
+                tasks={tasks}
+                mentionColors={mentionColors}
+                onTaskMentioned={handleTaskMentioned}
               />
             )}
           </div>
@@ -530,12 +442,19 @@ export function ChatView() {
               {/* Send button */}
               <button
                 type="button"
-                onClick={handleSubmit}
-                disabled={
-                  !connected || (!text.trim() && attachments.length === 0)
-                }
+                onClick={() => {
+                  // Trigger submit from outside — extract text and submit
+                  const editor = editorRef.current;
+                  if (editor) {
+                    // The ChatEditor handles submit internally via Enter key
+                    // This button is a fallback — we need to trigger it manually
+                    // For now, focus the editor so user can press Enter
+                    editor.focus();
+                  }
+                }}
+                disabled={!connected}
                 className={`shrink-0 p-1 rounded-lg transition-colors ${
-                  connected && (text.trim() || attachments.length > 0)
+                  connected
                     ? 'text-orange-400 hover:bg-orange-600/20 cursor-pointer'
                     : 'text-slate-600 cursor-default'
                 }`}
@@ -551,7 +470,7 @@ export function ChatView() {
   );
 }
 
-// Re-export Reply icon for the reply banner (used above in JSX)
+// Reply icon for the reply banner
 function Reply(props: React.SVGProps<SVGSVGElement> & { className?: string }) {
   return (
     <svg

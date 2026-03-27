@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import type { Message } from '@app/shared';
 import { ROLE_COLORS, formatRoleName } from '@app/shared';
 import { Paperclip, Reply, SmilePlus, ChevronDown, ArrowUpRight, Pencil } from 'lucide-react';
+import { MarkdownRenderer } from './MarkdownRenderer.js';
 
 interface MessageBubbleProps {
   message: Message;
@@ -15,23 +16,14 @@ interface MessageBubbleProps {
   onScrollToMessage?: (messageId: string) => void;
   isConsecutive?: boolean;
   isLastInGroup?: boolean;
+  mentionColors?: Record<string, string>;
 }
 
 const QUICK_EMOJIS = ['\u{1F44D}', '\u{1F44E}', '\u{2764}\u{FE0F}', '\u{1F389}', '\u{1F440}', '\u{1F525}'];
 
-function renderContent(text: string) {
-  const parts = text.split(/(@\w+)/g);
-  return parts.map((part, i) =>
-    part.startsWith('@') ? (
-      <span key={i} className="text-orange-400 font-semibold">{part}</span>
-    ) : (
-      part
-    )
-  );
-}
-
-export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, accentColor, displayName: overrideName, replyDisplayName, onScrollToMessage, isConsecutive, isLastInGroup = true }: MessageBubbleProps) {
+export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, accentColor, displayName: overrideName, replyDisplayName, onScrollToMessage, isConsecutive, isLastInGroup = true, mentionColors }: MessageBubbleProps) {
   const [showEmojis, setShowEmojis] = useState(false);
+  const emojiRef = useRef<HTMLDivElement>(null);
   const [replyExpanded, setReplyExpanded] = useState(false);
   const [editing, setEditing] = useState(false);
   const [editText, setEditText] = useState('');
@@ -39,6 +31,18 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
   const isSystem = message.senderType === 'system';
   const color = accentColor || ROLE_COLORS[message.senderName] || ROLE_COLORS[message.senderType] || '#8b949e';
   const displayName = isUser ? 'Me' : (overrideName || formatRoleName(message.senderName));
+
+  // Close emoji picker on outside click
+  useEffect(() => {
+    if (!showEmojis) return;
+    const handler = (e: MouseEvent) => {
+      if (emojiRef.current && !emojiRef.current.contains(e.target as Node)) {
+        setShowEmojis(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showEmojis]);
 
   if (isSystem) {
     return (
@@ -112,7 +116,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
         {/* Message bubble */}
         <div className="relative">
           <div
-            className={`px-3.5 py-2.5 text-base leading-normal whitespace-pre-wrap break-words ${
+            className={`px-3.5 py-2.5 text-base leading-normal break-words ${
               isConsecutive
                 ? isUser
                   ? 'bg-slate-700/50 rounded-lg'
@@ -179,7 +183,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                 </div>
               </div>
             ) : (
-              renderContent(message.content)
+              <MarkdownRenderer content={message.content} roleColors={mentionColors || ROLE_COLORS} />
             )}
 
             {/* Attachments */}
@@ -231,7 +235,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
 
           {/* Emoji picker — below bubble */}
           {showEmojis && onReact && (
-            <div className="absolute -bottom-5 left-4 flex items-center gap-1 z-20">
+            <div ref={emojiRef} className="absolute -bottom-5 left-4 flex items-center gap-1 z-20">
               <div className="flex items-center gap-0.5 bg-slate-800 border border-slate-700 rounded-lg px-1 py-0.5 shadow-lg">
                 {QUICK_EMOJIS.map((emoji) => (
                   <button
