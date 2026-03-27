@@ -12,7 +12,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
   const showLabels = !collapsed;
 
   return (
-    <nav className={`${collapsed ? 'w-14' : 'w-20 lg:w-60'} bg-slate-800 border-r border-slate-700 flex flex-col shrink-0 transition-all duration-200`}>
+    <nav className={`${collapsed ? 'w-14' : 'w-14 lg:w-60'} bg-slate-800 border-r border-slate-700 flex flex-col shrink-0 transition-all duration-200`}>
       <div className="flex flex-col gap-0.5 p-2 flex-1 overflow-y-auto">
         {/* Tasks */}
         <NavLink

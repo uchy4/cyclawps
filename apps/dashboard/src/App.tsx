@@ -10,7 +10,7 @@ import { ConfiguratorView } from './views/ConfiguratorView.js';
 const queryClient = new QueryClient();
 
 export function App() {
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <QueryClientProvider client={queryClient}>

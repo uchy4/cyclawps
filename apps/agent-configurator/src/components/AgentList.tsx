@@ -15,7 +15,7 @@ export function AgentList({ onCreate, onEdit }: AgentListProps) {
   }
 
   return (
-    <div className="p-8">
+    <div className="px-8 py-6">
       <p className="text-sm text-slate-400 mb-8">{agents.length} agent{agents.length !== 1 ? 's' : ''} configured</p>
 
       <div className="grid gap-6" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))' }}>

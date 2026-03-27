@@ -41,8 +41,8 @@ export function Header({ collapsed, onToggle }: HeaderProps) {
 
   return (
     <header className="flex items-center bg-slate-800 border-b-2 border-orange-400 shrink-0 h-14">
-      <div className={`${collapsed ? 'w-14' : 'w-20 lg:w-60'} flex justify-center items-center gap-3 shrink-0 border-r border-slate-700 transition-all duration-200`}>
-        <img src="/claw.svg" alt="Logo" className={collapsed ? "w-8 h-12 m-2" : "h-12 m-2"} />
+      <div className={`${collapsed ? 'w-14' : 'w-14 lg:w-60'} flex justify-center items-center gap-3 shrink-0 border-r border-slate-700 transition-all duration-200`}>
+        <img src="/claw.svg" alt="Logo" className={collapsed ? "w-8 h-12 m-2" : "w-8 h-12 m-2 lg:h-12 lg:w-auto"} />
         {!collapsed && (
           <h1 className="text-2xl text-slate-500 font-mono tracking-wider font-semibold hidden lg:block">
             cy<span className="font-bold italic text-orange-400 pr-[2px]">CLAW</span>ps
@@ -53,7 +53,7 @@ export function Header({ collapsed, onToggle }: HeaderProps) {
         <div className="flex items-center gap-3">
           <button
             onClick={onToggle}
-            className="text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
+            className="hidden lg:block text-slate-500 hover:text-slate-300 transition-colors cursor-pointer"
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {collapsed ? <ChevronRight className="w-6 h-6" /> : <ChevronLeft className="w-6 h-6" />}

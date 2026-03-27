@@ -8,7 +8,7 @@ export function KanbanView() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex-1 overflow-hidden px-6">
+      <div className="flex-1 overflow-hidden py-6 px-4">
         <Board connected={connected} initialTaskGuid={guid} />
       </div>
     </div>
