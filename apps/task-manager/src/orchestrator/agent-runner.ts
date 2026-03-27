@@ -1,8 +1,8 @@
 import { v4 as uuid } from 'uuid';
 import type Database from 'better-sqlite3';
 import type { Server } from 'socket.io';
-import type { ServerToClientEvents, ClientToServerEvents, AgentRunStatus } from '@agents-manager/shared';
-import { loadAgentConfig, invokeAgent } from '@agents-manager/agents';
+import type { ServerToClientEvents, ClientToServerEvents, AgentRunStatus } from '@cyclawps/shared';
+import { loadAgentConfig, invokeAgent } from '@cyclawps/agents';
 import { writeTaskLog } from '../db/log-writer.js';
 
 export class AgentRunner {

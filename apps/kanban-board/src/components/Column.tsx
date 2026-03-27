@@ -1,6 +1,6 @@
 import { useDroppable } from '@dnd-kit/core';
 import { Plus } from 'lucide-react';
-import type { Task, TaskStatus } from '@agents-manager/shared';
+import type { Task, TaskStatus } from '@cyclawps/shared';
 import { SortableTaskCard } from './SortableTaskCard.js';
 
 function ColumnTopDrop({ status }: { status: string }) {

@@ -7,7 +7,7 @@ let dbInstance: Database.Database | null = null;
 export function initDb(dbPath?: string): Database.Database {
   if (dbInstance) return dbInstance;
 
-  const resolvedPath = dbPath || process.env['DB_PATH'] || path.join(process.cwd(), 'data', 'agents-manager.db');
+  const resolvedPath = dbPath || process.env['DB_PATH'] || path.join(process.cwd(), 'data', 'cyclawps.db');
 
   // Ensure data directory exists
   const dir = path.dirname(resolvedPath);

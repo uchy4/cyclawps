@@ -1,7 +1,7 @@
 # Plan: New Agent Creator Skill + Prompt Refinement UI
 
 ## Context
-When creating new agents in the agents-manager, the user wants agentic help from Claude. This plan adds:
+When creating new agents in the cyclawps, the user wants agentic help from Claude. This plan adds:
 1. A Claude Code skill so Claude can scaffold `.agent.yaml` files
 2. A backend endpoint to refine system prompts via Claude
 3. A "Clarify with Claude" button with side-by-side before/after view

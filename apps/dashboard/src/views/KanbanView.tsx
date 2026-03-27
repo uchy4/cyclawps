@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
-import { Board } from '@agents-manager/kanban/components/Board.js';
-import { useSocket } from '@agents-manager/shared';
+import { Board } from '@cyclawps/kanban/components/Board.js';
+import { useSocket } from '@cyclawps/shared';
 
 export function KanbanView() {
   const { connected } = useSocket();
@@ -8,7 +8,7 @@ export function KanbanView() {
 
   return (
     <div className="h-full flex flex-col overflow-hidden">
-      <div className="flex-1 overflow-hidden px-8 py-6">
+      <div className="flex-1 overflow-hidden px-6">
         <Board connected={connected} initialTaskGuid={guid} />
       </div>
     </div>

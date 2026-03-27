@@ -1,4 +1,4 @@
-import { ROLE_COLORS, formatRoleName } from '@agents-manager/shared';
+import { ROLE_COLORS, formatRoleName } from '@cyclawps/shared';
 
 interface AgentBadgeProps {
   role: string;

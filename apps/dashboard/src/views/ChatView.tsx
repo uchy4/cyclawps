@@ -3,14 +3,14 @@ import { useParams } from 'react-router-dom';
 import {
   useMessages,
   type PendingAuth,
-} from '@agents-manager/chat/hooks/useMessages.js';
-import { MessageBubble } from '@agents-manager/chat/components/MessageBubble.js';
-import { AuthorizationBanner } from '@agents-manager/chat/components/AuthorizationBanner.js';
+} from '@cyclawps/chat/hooks/useMessages.js';
+import { MessageBubble } from '@cyclawps/chat/components/MessageBubble.js';
+import { AuthorizationBanner } from '@cyclawps/chat/components/AuthorizationBanner.js';
 import { Mic, Send, Loader2, X, Square, Paperclip } from 'lucide-react';
 import { useWhisper } from '../hooks/useWhisper.js';
 import { useAudioDevices } from '../hooks/useAudioDevices.js';
 import { MicSelector } from '../components/MicSelector.js';
-import type { Message, Attachment } from '@agents-manager/shared';
+import type { Message, Attachment } from '@cyclawps/shared';
 
 interface AgentInfo {
   role: string;

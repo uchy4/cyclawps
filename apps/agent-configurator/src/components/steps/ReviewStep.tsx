@@ -1,4 +1,4 @@
-import type { CreateAgentConfigInput } from '@agents-manager/shared';
+import type { CreateAgentConfigInput } from '@cyclawps/shared';
 
 interface ReviewStepProps {
   data: CreateAgentConfigInput;

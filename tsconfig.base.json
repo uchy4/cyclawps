@@ -20,8 +20,8 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@agents-manager/shared": ["libs/shared/src/index.ts"],
-      "@agents-manager/agents": ["libs/agents/src/index.ts"]
+      "@cyclawps/shared": ["libs/shared/src/index.ts"],
+      "@cyclawps/agents": ["libs/agents/src/index.ts"]
     }
   }
 }

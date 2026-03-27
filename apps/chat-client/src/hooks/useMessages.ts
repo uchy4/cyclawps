@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Message, Reaction, Attachment } from '@agents-manager/shared';
-import { useSocket } from '@agents-manager/shared';
+import type { Message, Reaction, Attachment } from '@cyclawps/shared';
+import { useSocket } from '@cyclawps/shared';
 
 export interface PendingAuth {
   taskId: string;

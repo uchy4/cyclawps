@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { v4 as uuid } from 'uuid';
-import type { Message, Reaction, Attachment } from '@agents-manager/shared';
+import type { Message, Reaction, Attachment } from '@cyclawps/shared';
 
 function parseAttachments(raw: unknown): Attachment[] {
   if (!raw || raw === '[]') return [];

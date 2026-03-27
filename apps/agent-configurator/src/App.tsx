@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { AgentList } from './components/AgentList.js';
 import { AgentEditor } from './components/AgentEditor.js';
-import { Drawer } from '@agents-manager/shared';
+import { Drawer } from '@cyclawps/shared';
 
 export function App() {
   const [drawerOpen, setDrawerOpen] = useState(false);

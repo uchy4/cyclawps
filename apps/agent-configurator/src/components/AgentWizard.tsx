@@ -5,7 +5,7 @@ import { ModelStep } from './steps/ModelStep.js';
 import { ToolsStep } from './steps/ToolsStep.js';
 import { PromptStep } from './steps/PromptStep.js';
 import { ReviewStep } from './steps/ReviewStep.js';
-import type { CreateAgentConfigInput } from '@agents-manager/shared';
+import type { CreateAgentConfigInput } from '@cyclawps/shared';
 
 const STEPS = ['Basic Info', 'Model', 'Tools', 'System Prompt', 'Review'];
 

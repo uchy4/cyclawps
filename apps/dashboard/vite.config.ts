@@ -43,11 +43,11 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      '@agents-manager/shared': path.join(ROOT, 'libs/shared/src/index.ts'),
-      '@agents-manager/styles': path.join(ROOT, 'libs/shared/src/styles'),
-      '@agents-manager/kanban': path.join(ROOT, 'apps/kanban-board/src'),
-      '@agents-manager/chat': path.join(ROOT, 'apps/chat-client/src'),
-      '@agents-manager/configurator': path.join(ROOT, 'apps/agent-configurator/src'),
+      '@cyclawps/shared': path.join(ROOT, 'libs/shared/src/index.ts'),
+      '@cyclawps/styles': path.join(ROOT, 'libs/shared/src/styles'),
+      '@cyclawps/kanban': path.join(ROOT, 'apps/kanban-board/src'),
+      '@cyclawps/chat': path.join(ROOT, 'apps/chat-client/src'),
+      '@cyclawps/configurator': path.join(ROOT, 'apps/agent-configurator/src'),
       'react': path.join(ROOT, 'node_modules/react'),
       'react-dom': path.join(ROOT, 'node_modules/react-dom'),
       'react/jsx-runtime': path.join(ROOT, 'node_modules/react/jsx-runtime'),

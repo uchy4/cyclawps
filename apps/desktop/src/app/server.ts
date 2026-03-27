@@ -34,7 +34,7 @@ function getPaths() {
   if (app.isPackaged) {
     const resourcesPath = process.resourcesPath;
     return {
-      dbPath: join(app.getPath('userData'), 'data', 'agents-manager.db'),
+      dbPath: join(app.getPath('userData'), 'data', 'cyclawps.db'),
       agentsPath: join(resourcesPath, 'agents'),
       staticDir: join(resourcesPath, 'dashboard'),
       serverEntry: join(resourcesPath, 'server', 'main.js'),

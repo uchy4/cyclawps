@@ -1,5 +1,5 @@
 import { forwardRef } from 'react';
-import type { Task } from '@agents-manager/shared';
+import type { Task } from '@cyclawps/shared';
 import { AgentBadge } from './AgentBadge.js';
 
 interface TaskCardProps {

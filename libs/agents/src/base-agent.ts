@@ -1,4 +1,4 @@
-import type { AgentConfig, AgentRunStatus } from '@agents-manager/shared';
+import type { AgentConfig, AgentRunStatus } from '@cyclawps/shared';
 
 export interface InvokeAgentOptions {
   config: AgentConfig;

@@ -1,5 +1,5 @@
 {
-  "name": "@agents-manager/task-manager",
+  "name": "@cyclawps/task-manager",
   "version": "0.0.1",
   "private": true,
   "main": "./src/main.ts",

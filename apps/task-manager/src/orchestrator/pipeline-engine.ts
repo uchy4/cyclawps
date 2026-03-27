@@ -2,11 +2,11 @@ import fs from 'node:fs';
 import path from 'node:path';
 import yaml from 'js-yaml';
 import type Database from 'better-sqlite3';
-import type { PipelineConfig, PipelineStage, PipelineTransition } from '@agents-manager/shared';
+import type { PipelineConfig, PipelineStage, PipelineTransition } from '@cyclawps/shared';
 import { AgentRunner } from './agent-runner.js';
 import { AuthorizationGate } from './authorization.js';
 import type { Server } from 'socket.io';
-import type { ServerToClientEvents, ClientToServerEvents } from '@agents-manager/shared';
+import type { ServerToClientEvents, ClientToServerEvents } from '@cyclawps/shared';
 
 export class PipelineEngine {
   private config: PipelineConfig | null = null;

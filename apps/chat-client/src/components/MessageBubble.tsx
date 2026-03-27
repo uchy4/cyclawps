@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import type { Message } from '@agents-manager/shared';
-import { ROLE_COLORS, formatRoleName } from '@agents-manager/shared';
+import type { Message } from '@cyclawps/shared';
+import { ROLE_COLORS, formatRoleName } from '@cyclawps/shared';
 import { Paperclip, Reply, SmilePlus, ChevronDown, ArrowUpRight, Pencil } from 'lucide-react';
 
 interface MessageBubbleProps {

@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import type { TaskLog } from '@agents-manager/shared';
-import { useSocket } from '@agents-manager/shared';
+import type { TaskLog } from '@cyclawps/shared';
+import { useSocket } from '@cyclawps/shared';
 
 async function fetchTaskLogs(taskGuid: string, search?: string): Promise<TaskLog[]> {
   const params = new URLSearchParams();

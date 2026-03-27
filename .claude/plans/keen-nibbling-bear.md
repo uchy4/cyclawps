@@ -9,7 +9,7 @@ When creating a new agent, the system prompt textarea is a plain text field with
 ### 1. Move `useWhisper` hook to shared library
 - **Move** `apps/dashboard/src/hooks/useWhisper.ts` → `libs/shared/src/hooks/useWhisper.ts`
 - **Update** `libs/shared/src/index.ts` — add `export { useWhisper } from './hooks/useWhisper.js'`
-- **Update** `apps/dashboard/src/views/ChatView.tsx` — change import to `'@agents-manager/shared'`
+- **Update** `apps/dashboard/src/views/ChatView.tsx` — change import to `'@cyclawps/shared'`
 
 ### 2. Backend: Prompt refinement endpoint
 - **Install** `@anthropic-ai/sdk` dependency in root `package.json`

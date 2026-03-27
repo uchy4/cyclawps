@@ -1,5 +1,5 @@
-import type { AgentConfig } from '@agents-manager/shared';
-import { ROLE_COLORS } from '@agents-manager/shared';
+import type { AgentConfig } from '@cyclawps/shared';
+import { ROLE_COLORS } from '@cyclawps/shared';
 
 interface AgentCardProps {
   agent: AgentConfig;

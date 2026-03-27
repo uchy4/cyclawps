@@ -1,7 +1,7 @@
 import type { Server } from 'socket.io';
 import { v4 as uuid } from 'uuid';
 import type Database from 'better-sqlite3';
-import type { ServerToClientEvents, ClientToServerEvents, Reaction } from '@agents-manager/shared';
+import type { ServerToClientEvents, ClientToServerEvents, Reaction } from '@cyclawps/shared';
 
 export function registerSocketHandlers(
   io: Server<ClientToServerEvents, ServerToClientEvents>,

@@ -1,5 +1,5 @@
 {
-  "name": "@agents-manager/agent-configurator",
+  "name": "@cyclawps/agent-configurator",
   "version": "0.0.1",
   "private": true,
   "scripts": {

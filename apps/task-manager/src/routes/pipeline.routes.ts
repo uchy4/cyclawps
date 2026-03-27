@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { v4 as uuid } from 'uuid';
-import type { PipelineConfigRecord } from '@agents-manager/shared';
+import type { PipelineConfigRecord } from '@cyclawps/shared';
 
 function rowToConfig(row: Record<string, unknown>): PipelineConfigRecord {
   return {

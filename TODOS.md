@@ -1,4 +1,4 @@
-# agents-manager — Todo
+# cyclawps — Todo
 
 ## In Progress
 - [ ] Connect agent SDK to pipeline engine (invoke real agents)

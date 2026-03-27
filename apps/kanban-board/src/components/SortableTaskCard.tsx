@@ -1,5 +1,5 @@
 import { useDraggable, useDroppable } from '@dnd-kit/core';
-import type { Task } from '@agents-manager/shared';
+import type { Task } from '@cyclawps/shared';
 import { TaskCard } from './TaskCard.js';
 
 interface SortableTaskCardProps {

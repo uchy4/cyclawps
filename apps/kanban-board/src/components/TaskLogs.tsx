@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import type { TaskLog, LogStatus } from '@agents-manager/shared';
+import type { TaskLog, LogStatus } from '@cyclawps/shared';
 import { useTaskLogs } from '../hooks/useTaskLogs.js';
 import { AgentBadge } from './AgentBadge.js';
 
