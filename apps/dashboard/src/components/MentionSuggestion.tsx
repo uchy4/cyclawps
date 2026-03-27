@@ -154,7 +154,8 @@ export function TaskSuggestionList({
 // ─── Suggestion Renderer Factory ────────────────────────────
 
 export function createSuggestionRenderer(
-  Component: typeof AgentSuggestionList | typeof TaskSuggestionList
+  Component: typeof AgentSuggestionList | typeof TaskSuggestionList,
+  onOpenChange?: (open: boolean) => void
 ) {
   let container: HTMLDivElement | null = null;
   let root: ReturnType<typeof import('react-dom/client').createRoot> | null = null;
@@ -162,6 +163,7 @@ export function createSuggestionRenderer(
 
   return {
     onStart: (props: SuggestionProps) => {
+      onOpenChange?.(true);
       container = document.createElement('div');
       container.style.position = 'absolute';
       container.style.zIndex = '50';
@@ -223,6 +225,7 @@ export function createSuggestionRenderer(
   }
 
   function cleanup() {
+    onOpenChange?.(false);
     if (root) {
       root.unmount();
       root = null;

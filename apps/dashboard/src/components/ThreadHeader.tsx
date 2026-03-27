@@ -79,6 +79,13 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
         ...thread,
         participants: [...thread.participants, participant],
       });
+      const agent = agents.find((a) => a.role === agentRole);
+      const name = agent?.displayName || formatRoleName(agentRole);
+      fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `@${name} added to thread`, threadId: thread.id }),
+      });
     }
   };
 
@@ -90,6 +97,13 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
       onThreadUpdate({
         ...thread,
         participants: thread.participants.filter((p) => p.agentRole !== agentRole),
+      });
+      const agent = agents.find((a) => a.role === agentRole);
+      const name = agent?.displayName || formatRoleName(agentRole);
+      fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `@${name} removed from thread`, threadId: thread.id }),
       });
     }
   };
@@ -107,10 +121,16 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
         ...thread,
         taskTags: [...thread.taskTags, tag],
       });
+      fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `#${tag.taskGuid} added to thread`, threadId: thread.id }),
+      });
     }
   };
 
   const removeTaskTag = async (taskId: string) => {
+    const tag = thread.taskTags.find((t) => t.taskId === taskId);
     const res = await fetch(`/api/threads/${thread.id}/tasks/${taskId}`, {
       method: 'DELETE',
     });
@@ -119,11 +139,16 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
         ...thread,
         taskTags: thread.taskTags.filter((t) => t.taskId !== taskId),
       });
+      fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `#${tag?.taskGuid || 'task'} removed from thread`, threadId: thread.id }),
+      });
     }
   };
 
-  const participantRoles = new Set(thread.participants.map((p) => p.agentRole));
-  const taggedTaskIds = new Set(thread.taskTags.map((t) => t.taskId));
+  const participantRoles = new Set((thread.participants || []).map((p) => p.agentRole));
+  const taggedTaskIds = new Set((thread.taskTags || []).map((t) => t.taskId));
   const availableAgents = allAgents.filter((a) => !participantRoles.has(a.role));
   const availableTasks = allTasks.filter((t) => !taggedTaskIds.has(t.id));
 
@@ -159,7 +184,7 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
       {/* Participants */}
       <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
         <span className="text-[10px] text-slate-500 uppercase tracking-wider mr-1">Agents</span>
-        {thread.participants.map((p) => {
+        {(thread.participants || []).map((p) => {
           const agentInfo = agents.find((a) => a.role === p.agentRole);
           const color = agentInfo?.accentColor || ROLE_COLORS[p.agentRole] || '#8b949e';
           return (
@@ -212,7 +237,7 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
       {/* Task tags */}
       <div className="flex items-center gap-1.5 flex-wrap">
         <span className="text-[10px] text-slate-500 uppercase tracking-wider mr-1">Tasks</span>
-        {thread.taskTags.map((tag) => (
+        {(thread.taskTags || []).map((tag) => (
           <span
             key={tag.taskId}
             className="group inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300"

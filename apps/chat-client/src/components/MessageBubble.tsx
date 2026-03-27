@@ -93,7 +93,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
   const hasReactions = reactionGroups.size > 0;
 
   return (
-    <div className={`group flex items-start gap-2 ${isLastInGroup ? 'mb-9' : 'mb-1'}`}>
+    <div className={`group flex items-start gap-2 ${isLastInGroup ? 'mb-5' : 'mb-1'}`}>
       {/* Bubble column */}
       <div className="flex flex-col items-start max-w-[80%]">
         {/* Sender name + timestamp row — hidden for consecutive messages */}
@@ -127,21 +127,21 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
             }`}
             style={borderStyle}
           >
-            {/* Reply context — rounded border, fit-content width, expandable */}
+            {/* Reply context — rounded border, constrained width, expandable */}
             {replyTarget && (
-              <div className="mb-2 w-fit max-w-full rounded-lg border border-slate-600 bg-slate-800/50 px-2.5 py-1.5 font-normal">
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-500">
+              <div className="mb-2 max-w-full rounded-lg border border-slate-600 bg-slate-800/50 px-2.5 py-1.5 font-normal" style={{ width: 'fit-content', maxWidth: '100%' }}>
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 min-w-0">
                   <button
                     type="button"
                     onClick={() => setReplyExpanded((v) => !v)}
-                    className="flex items-center gap-1.5 cursor-pointer min-w-0"
+                    className="flex items-center gap-1.5 cursor-pointer min-w-0 overflow-hidden"
                   >
                     <Reply className="w-3 h-3 rotate-180 shrink-0" />
                     <span className="font-medium shrink-0" style={{ color: ROLE_COLORS[replyTarget.senderName] || '#8b949e' }}>
                       {replyName}
                     </span>
                     {!replyExpanded && (
-                      <span className="truncate opacity-70">{replyTarget.content}</span>
+                      <span className="truncate opacity-70" style={{ maxWidth: '200px' }}>{replyTarget.content}</span>
                     )}
                     <ChevronDown className={`w-3 h-3 shrink-0 transition-transform ${replyExpanded ? 'rotate-180' : ''}`} />
                   </button>
@@ -205,7 +205,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
               </div>
             )}
 
-            {/* Reactions — inline inside the bubble */}
+            {/* Reactions — inline inside the bubble, with hover actions inline when reactions exist */}
             {hasReactions && (
               <div className="flex items-center gap-1 mt-2 flex-wrap">
                 {Array.from(reactionGroups.entries()).map(([emoji, { count, reactors }]) => {
@@ -229,13 +229,45 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                     </button>
                   );
                 })}
+                {/* Inline hover actions next to reactions */}
+                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-0.5 py-0.5 shadow-lg h-6">
+                    {onReply && (
+                      <button
+                        onClick={() => onReply(message)}
+                        className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                        title="Reply"
+                      >
+                        <Reply className="w-3 h-3" />
+                      </button>
+                    )}
+                    {onReact && (
+                      <button
+                        onClick={() => setShowEmojis(!showEmojis)}
+                        className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                        title="React"
+                      >
+                        <SmilePlus className="w-3 h-3" />
+                      </button>
+                    )}
+                    {isUser && onEdit && (
+                      <button
+                        onClick={handleStartEdit}
+                        className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                        title="Edit"
+                      >
+                        <Pencil className="w-3 h-3" />
+                      </button>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
 
           {/* Emoji picker — below bubble */}
           {showEmojis && onReact && (
-            <div ref={emojiRef} className="absolute -bottom-5 left-4 flex items-center gap-1 z-20">
+            <div ref={emojiRef} className={`absolute left-4 flex items-center gap-1 z-20 ${hasReactions ? '-bottom-1' : '-bottom-3'}`}>
               <div className="flex items-center gap-0.5 bg-slate-800 border border-slate-700 rounded-lg px-1 py-0.5 shadow-lg">
                 {QUICK_EMOJIS.map((emoji) => (
                   <button
@@ -250,38 +282,40 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
             </div>
           )}
 
-          {/* Reply + React + Edit actions pill — hover only, 1rem from left edge of bubble */}
-          <div className="absolute -bottom-5 left-4 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-            <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-0.5 py-0.5 shadow-lg h-7">
-              {onReply && (
-                <button
-                  onClick={() => onReply(message)}
-                  className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
-                  title="Reply"
-                >
-                  <Reply className="w-3.5 h-3.5" />
-                </button>
-              )}
-              {onReact && (
-                <button
-                  onClick={() => setShowEmojis(!showEmojis)}
-                  className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
-                  title="React"
-                >
-                  <SmilePlus className="w-3.5 h-3.5" />
-                </button>
-              )}
-              {isUser && onEdit && (
-                <button
-                  onClick={handleStartEdit}
-                  className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
-                  title="Edit"
-                >
-                  <Pencil className="w-3.5 h-3.5" />
-                </button>
-              )}
+          {/* Reply + React + Edit actions pill — hover only, floating when NO reactions */}
+          {!hasReactions && (
+            <div className="absolute left-4 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity -bottom-3">
+              <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-0.5 py-0.5 shadow-lg h-7">
+                {onReply && (
+                  <button
+                    onClick={() => onReply(message)}
+                    className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                    title="Reply"
+                  >
+                    <Reply className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                {onReact && (
+                  <button
+                    onClick={() => setShowEmojis(!showEmojis)}
+                    className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                    title="React"
+                  >
+                    <SmilePlus className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                {isUser && onEdit && (
+                  <button
+                    onClick={handleStartEdit}
+                    className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                    title="Edit"
+                  >
+                    <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

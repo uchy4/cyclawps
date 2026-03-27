@@ -31,12 +31,16 @@ interface ChatEditorProps {
   tasks: TaskInfo[];
   mentionColors: Record<string, string>;
   onTaskMentioned?: (task: { id: string; guid: string }) => void;
+  onAgentMentioned?: (agentRole: string) => void;
 }
 
 export interface ChatEditorHandle {
   insertText: (text: string) => void;
   focus: () => void;
   clear: () => void;
+  submit: () => void;
+  insertAgentMention: (role: string, label: string) => void;
+  insertTaskMention: (id: string, guid: string) => void;
 }
 
 // Extract plain text from TipTap JSON, converting mention nodes back to @Name / #GUID
@@ -73,16 +77,19 @@ const AgentMention = Mention.extend({ name: 'agentMention' });
 const TaskMention = Mention.extend({ name: 'taskMention' });
 
 export const ChatEditor = forwardRef<ChatEditorHandle, ChatEditorProps>(
-  function ChatEditor({ onSubmit, disabled, placeholder, agents, tasks, mentionColors, onTaskMentioned }, ref) {
+  function ChatEditor({ onSubmit, disabled, placeholder, agents, tasks, mentionColors, onTaskMentioned, onAgentMentioned }, ref) {
     // Use refs for callbacks so the editor doesn't need to be recreated when they change
     const onSubmitRef = useRef(onSubmit);
     onSubmitRef.current = onSubmit;
     const onTaskMentionedRef = useRef(onTaskMentioned);
     onTaskMentionedRef.current = onTaskMentioned;
+    const onAgentMentionedRef = useRef(onAgentMentioned);
+    onAgentMentionedRef.current = onAgentMentioned;
     const agentsRef = useRef(agents);
     agentsRef.current = agents;
     const tasksRef = useRef(tasks);
     tasksRef.current = tasks;
+    const suggestionOpenRef = useRef(false);
 
     const editor = useEditor({
       extensions: [
@@ -108,7 +115,7 @@ export const ChatEditor = forwardRef<ChatEditorHandle, ChatEditorProps>(
                 )
                 .slice(0, 10);
             },
-            render: () => createSuggestionRenderer(AgentSuggestionList),
+            render: () => createSuggestionRenderer(AgentSuggestionList, (open) => { suggestionOpenRef.current = open; }),
           },
           renderLabel: ({ node }: { node: { attrs: { label: string } } }) => `@${node.attrs.label}`,
         }),
@@ -125,7 +132,7 @@ export const ChatEditor = forwardRef<ChatEditorHandle, ChatEditorProps>(
                 )
                 .slice(0, 10);
             },
-            render: () => createSuggestionRenderer(TaskSuggestionList),
+            render: () => createSuggestionRenderer(TaskSuggestionList, (open) => { suggestionOpenRef.current = open; }),
           },
           renderLabel: ({ node }: { node: { attrs: { label: string } } }) => `#${node.attrs.label}`,
         }),
@@ -135,6 +142,10 @@ export const ChatEditor = forwardRef<ChatEditorHandle, ChatEditorProps>(
           class: 'outline-none text-white text-base leading-6 min-h-[24px] max-h-[100px] overflow-y-auto w-full',
         },
         handleKeyDown: (view, event) => {
+          // Let suggestion plugin handle Enter/Tab when popup is open
+          if (suggestionOpenRef.current && (event.key === 'Enter' || event.key === 'Tab')) {
+            return false; // Don't handle — let TipTap's suggestion plugin process it
+          }
           if (event.key === 'Enter' && !event.shiftKey) {
             event.preventDefault();
             const json = view.state.doc.toJSON();
@@ -153,33 +164,27 @@ export const ChatEditor = forwardRef<ChatEditorHandle, ChatEditorProps>(
       },
       editable: !disabled,
       onTransaction: ({ transaction }) => {
-        const cb = onTaskMentionedRef.current;
-        if (!cb) return;
+        const taskCb = onTaskMentionedRef.current;
+        const agentCb = onAgentMentionedRef.current;
+        if (!taskCb && !agentCb) return;
+
+        function checkNode(node: Record<string, unknown>) {
+          if (node.type === 'taskMention' && taskCb) {
+            const attrs = node.attrs as { id?: string; label?: string } | undefined;
+            if (attrs?.id && attrs?.label) taskCb({ id: attrs.id, guid: attrs.label });
+          }
+          if (node.type === 'agentMention' && agentCb) {
+            const attrs = node.attrs as { id?: string } | undefined;
+            if (attrs?.id) agentCb(attrs.id);
+          }
+          const nested = node.content as Array<Record<string, unknown>> | undefined;
+          if (nested) nested.forEach(checkNode);
+        }
+
         for (const step of transaction.steps) {
           const stepJson = (step as unknown as { toJSON: () => Record<string, unknown> }).toJSON();
           const slice = stepJson.slice as { content?: Array<Record<string, unknown>> } | undefined;
-          if (slice?.content) {
-            for (const node of slice.content) {
-              if (node.type === 'taskMention') {
-                const attrs = node.attrs as { id?: string; label?: string } | undefined;
-                if (attrs?.id && attrs?.label) {
-                  cb({ id: attrs.id, guid: attrs.label });
-                }
-              }
-              // Also check nested content (e.g. paragraph wrapping mention)
-              const nested = node.content as Array<Record<string, unknown>> | undefined;
-              if (nested) {
-                for (const child of nested) {
-                  if (child.type === 'taskMention') {
-                    const attrs = child.attrs as { id?: string; label?: string } | undefined;
-                    if (attrs?.id && attrs?.label) {
-                      cb({ id: attrs.id, guid: attrs.label });
-                    }
-                  }
-                }
-              }
-            }
-          }
+          if (slice?.content) slice.content.forEach(checkNode);
         }
       },
     });
@@ -220,6 +225,31 @@ export const ChatEditor = forwardRef<ChatEditorHandle, ChatEditorProps>(
       },
       clear: () => {
         editor?.commands.clearContent();
+      },
+      submit: () => {
+        if (!editor) return;
+        const json = editor.getJSON();
+        const text = jsonToPlainText(json as Record<string, unknown>);
+        if (text) {
+          onSubmitRef.current(text);
+          editor.commands.clearContent();
+        }
+      },
+      insertAgentMention: (role: string, label: string) => {
+        editor?.commands.focus();
+        editor?.commands.insertContent({
+          type: 'agentMention',
+          attrs: { id: role, label },
+        });
+        editor?.commands.insertContent(' ');
+      },
+      insertTaskMention: (id: string, guid: string) => {
+        editor?.commands.focus();
+        editor?.commands.insertContent({
+          type: 'taskMention',
+          attrs: { id, label: guid },
+        });
+        editor?.commands.insertContent(' ');
       },
     }), [editor]);
 

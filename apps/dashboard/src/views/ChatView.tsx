@@ -6,7 +6,7 @@ import {
 } from '@app/chat/hooks/useMessages';
 import { MessageBubble } from '@app/chat/components/MessageBubble';
 import { AuthorizationBanner } from '@app/chat/components/AuthorizationBanner';
-import { Mic, Send, Loader2, X, Square, Paperclip } from 'lucide-react';
+import { Mic, Send, Loader2, X, Square, Paperclip, AtSign, Hash } from 'lucide-react';
 import { useWhisper } from '../hooks/useWhisper.js';
 import { useAudioDevices } from '../hooks/useAudioDevices.js';
 import { MicSelector } from '../components/MicSelector.js';
@@ -48,6 +48,10 @@ export function ChatView() {
   const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [agents, setAgents] = useState<AgentInfo[]>([]);
   const [tasks, setTasks] = useState<{ id: string; guid: string; title: string }[]>([]);
+  const [pickerType, setPickerType] = useState<'agent' | 'task' | null>(null);
+  const [pickerQuery, setPickerQuery] = useState('');
+  const [pickerIndex, setPickerIndex] = useState(0);
+  const pickerInputRef = useRef<HTMLInputElement>(null);
   const {
     devices: audioDevices,
     selectedDeviceId,
@@ -102,6 +106,13 @@ export function ChatView() {
     setAttachments([]);
   }, [threadId, agentRole]);
 
+  // Auto-focus picker input when opened
+  useEffect(() => {
+    if (pickerType) {
+      requestAnimationFrame(() => pickerInputRef.current?.focus());
+    }
+  }, [pickerType]);
+
   // Derive chat title
   const chatAgent = agentRole ? agents.find((a) => a.role === agentRole) : null;
   const chatTitle = agentRole
@@ -126,7 +137,7 @@ export function ChatView() {
 
   const handleTaskMentioned = useCallback(async (task: { id: string; guid: string }) => {
     if (!threadId || !thread) return;
-    const alreadyTagged = thread.taskTags.some((t) => t.taskId === task.id);
+    const alreadyTagged = (thread.taskTags || []).some((t) => t.taskId === task.id);
     if (alreadyTagged) return;
     const res = await fetch(`/api/threads/${threadId}/tasks`, {
       method: 'POST',
@@ -136,8 +147,36 @@ export function ChatView() {
     if (res.ok) {
       const tag = await res.json();
       setThread((prev) => prev ? { ...prev, taskTags: [...prev.taskTags, tag] } : prev);
+      // Post system message about the tag
+      fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `#${task.guid} added to thread`, threadId }),
+      });
     }
   }, [threadId, thread]);
+
+  const handleAgentMentioned = useCallback(async (mentionedRole: string) => {
+    if (!threadId || !thread) return;
+    const alreadyAdded = (thread.participants || []).some((p) => p.agentRole === mentionedRole);
+    if (alreadyAdded) return;
+    const res = await fetch(`/api/threads/${threadId}/participants`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ agentRole: mentionedRole }),
+    });
+    if (res.ok) {
+      const participant = await res.json();
+      setThread((prev) => prev ? { ...prev, participants: [...prev.participants, participant] } : prev);
+      const agent = agents.find((a) => a.role === mentionedRole);
+      const name = agent?.displayName || agent?.name || mentionedRole;
+      fetch('/api/messages', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `@${name} added to thread`, threadId }),
+      });
+    }
+  }, [threadId, thread, agents]);
 
   const handleMicClick = async () => {
     if (whisper.isRecording) {
@@ -145,6 +184,7 @@ export function ChatView() {
       if (transcribed) {
         editorRef.current?.insertText(transcribed);
       }
+      editorRef.current?.focus();
     } else {
       await whisper.startRecording();
     }
@@ -199,9 +239,7 @@ export function ChatView() {
     return () => clearInterval(interval);
   }, [whisper.isTranscribing]);
 
-  const placeholderText = whisper.isTranscribing
-    ? 'Transcribing' + '.'.repeat(dots)
-    : 'Type a message...';
+  const placeholderText = 'Type a message...';
 
   return (
     <div className="h-full flex flex-col">
@@ -326,6 +364,34 @@ export function ChatView() {
         </div>
       )}
 
+      {/* Button-triggered picker popover */}
+      {pickerType && (
+        <PickerPopover
+          type={pickerType}
+          agents={agents}
+          tasks={tasks}
+          mentionColors={mentionColors}
+          query={pickerQuery}
+          selectedIndex={pickerIndex}
+          onQueryChange={(q) => { setPickerQuery(q); setPickerIndex(0); }}
+          onIndexChange={setPickerIndex}
+          onSelect={(item) => {
+            if (pickerType === 'agent') {
+              const agent = item as AgentInfo;
+              editorRef.current?.insertAgentMention(agent.role, (agent.displayName || agent.name).replace(/\s+/g, '_'));
+              handleAgentMentioned(agent.role);
+            } else {
+              const task = item as { id: string; guid: string; title: string };
+              editorRef.current?.insertTaskMention(task.id, task.guid);
+              handleTaskMentioned({ id: task.id, guid: task.guid });
+            }
+            setPickerType(null);
+          }}
+          onClose={() => setPickerType(null)}
+          inputRef={pickerInputRef}
+        />
+      )}
+
       {/* Input bar */}
       <div className="px-8 pb-8 pt-2">
         <div
@@ -361,21 +427,31 @@ export function ChatView() {
                     }}
                   />
                 ))}
-                <span className="ml-3 text-base text-orange-400/70">
+                <span className="ml-3 text-base text-orange-400">
                   Listening...
                 </span>
               </div>
             ) : (
-              <ChatEditor
-                ref={editorRef}
-                onSubmit={handleEditorSubmit}
-                disabled={!connected || whisper.isTranscribing}
-                placeholder={placeholderText}
-                agents={agents}
-                tasks={tasks}
-                mentionColors={mentionColors}
-                onTaskMentioned={handleTaskMentioned}
-              />
+              <div className="relative w-full">
+                <ChatEditor
+                  ref={editorRef}
+                  onSubmit={handleEditorSubmit}
+                  disabled={!connected || whisper.isTranscribing}
+                  placeholder={placeholderText}
+                  agents={agents}
+                  tasks={tasks}
+                  mentionColors={mentionColors}
+                  onTaskMentioned={handleTaskMentioned}
+                  onAgentMentioned={handleAgentMentioned}
+                />
+                {whisper.isTranscribing && (
+                  <div className="absolute inset-0 flex items-center pointer-events-none">
+                    <span className="text-base text-orange-400">
+                      Transcribing{'.'.repeat(dots)}
+                    </span>
+                  </div>
+                )}
+              </div>
             )}
           </div>
 
@@ -407,6 +483,32 @@ export function ChatView() {
               >
                 <Paperclip className="w-5 h-5" />
               </button>
+
+              {/* @ mention trigger */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setPickerType(pickerType === 'agent' ? null : 'agent'); setPickerQuery(''); setPickerIndex(0); }}
+                  disabled={!connected}
+                  className={`shrink-0 p-1 rounded-lg cursor-pointer transition-colors ${pickerType === 'agent' ? 'text-orange-400 bg-orange-600/20' : 'text-slate-400 hover:text-orange-400 hover:bg-orange-600/20'}`}
+                  aria-label="Mention agent"
+                >
+                  <AtSign className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* # task tag trigger */}
+              <div className="relative">
+                <button
+                  type="button"
+                  onClick={() => { setPickerType(pickerType === 'task' ? null : 'task'); setPickerQuery(''); setPickerIndex(0); }}
+                  disabled={!connected}
+                  className={`shrink-0 p-1 rounded-lg cursor-pointer transition-colors ${pickerType === 'task' ? 'text-orange-400 bg-orange-600/20' : 'text-slate-400 hover:text-orange-400 hover:bg-orange-600/20'}`}
+                  aria-label="Tag task"
+                >
+                  <Hash className="w-5 h-5" />
+                </button>
+              </div>
 
               {/* Mic button */}
               <section className="flex items-center gap-1">
@@ -442,16 +544,7 @@ export function ChatView() {
               {/* Send button */}
               <button
                 type="button"
-                onClick={() => {
-                  // Trigger submit from outside — extract text and submit
-                  const editor = editorRef.current;
-                  if (editor) {
-                    // The ChatEditor handles submit internally via Enter key
-                    // This button is a fallback — we need to trigger it manually
-                    // For now, focus the editor so user can press Enter
-                    editor.focus();
-                  }
-                }}
+                onClick={() => editorRef.current?.submit()}
                 disabled={!connected}
                 className={`shrink-0 p-1 rounded-lg transition-colors ${
                   connected
@@ -471,6 +564,107 @@ export function ChatView() {
 }
 
 // Reply icon for the reply banner
+// ─── Picker Popover for @ and # buttons ─────────────────────
+
+interface PickerPopoverProps {
+  type: 'agent' | 'task';
+  agents: AgentInfo[];
+  tasks: { id: string; guid: string; title: string }[];
+  mentionColors: Record<string, string>;
+  query: string;
+  selectedIndex: number;
+  onQueryChange: (q: string) => void;
+  onIndexChange: (i: number) => void;
+  onSelect: (item: AgentInfo | { id: string; guid: string; title: string }) => void;
+  onClose: () => void;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+}
+
+function PickerPopover({ type, agents, tasks, mentionColors, query, selectedIndex, onQueryChange, onIndexChange, onSelect, onClose, inputRef }: PickerPopoverProps) {
+  const items = type === 'agent'
+    ? agents.filter(a =>
+        (a.displayName || a.name).toLowerCase().includes(query.toLowerCase()) ||
+        a.role.toLowerCase().includes(query.toLowerCase())
+      )
+    : tasks.filter(t =>
+        t.guid.toLowerCase().includes(query.toLowerCase()) ||
+        t.title.toLowerCase().includes(query.toLowerCase())
+      );
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      e.stopPropagation();
+      onIndexChange(Math.min(selectedIndex + 1, items.length - 1));
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      e.stopPropagation();
+      onIndexChange(Math.max(selectedIndex - 1, 0));
+    } else if (e.key === 'Enter' || e.key === 'Tab') {
+      e.preventDefault();
+      e.stopPropagation();
+      if (items[selectedIndex]) onSelect(items[selectedIndex]);
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      onClose();
+    }
+  };
+
+  return (
+    <div className="px-8">
+      <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-lg overflow-hidden">
+        <div className="px-3 py-2 border-b border-slate-700">
+          <input
+            ref={inputRef}
+            value={query}
+            onChange={(e) => onQueryChange(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder={type === 'agent' ? 'Search agents...' : 'Search tasks...'}
+            className="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none"
+          />
+        </div>
+        <div className="max-h-48 overflow-y-auto">
+          {items.length === 0 && (
+            <div className="px-3 py-2 text-xs text-slate-500">No results</div>
+          )}
+          {type === 'agent'
+            ? (items as AgentInfo[]).map((agent, i) => {
+                const color = agent.accentColor || mentionColors[agent.role] || '#8b949e';
+                return (
+                  <button
+                    key={agent.role}
+                    onClick={() => onSelect(agent)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left cursor-pointer transition-colors ${
+                      i === selectedIndex ? 'bg-slate-700' : 'hover:bg-slate-700/50'
+                    }`}
+                  >
+                    <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
+                    <span className="font-mono text-xs" style={{ color }}>
+                      @{(agent.displayName || agent.name).replace(/\s+/g, '_')}
+                    </span>
+                    <span className="text-slate-500">{agent.role}</span>
+                  </button>
+                );
+              })
+            : (items as { id: string; guid: string; title: string }[]).map((task, i) => (
+                <button
+                  key={task.id}
+                  onClick={() => onSelect(task)}
+                  className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left cursor-pointer transition-colors ${
+                    i === selectedIndex ? 'bg-slate-700' : 'hover:bg-slate-700/50'
+                  }`}
+                >
+                  <span className="text-orange-400 font-mono text-xs">#{task.guid}</span>
+                  <span className="text-slate-400 truncate">{task.title}</span>
+                </button>
+              ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function Reply(props: React.SVGProps<SVGSVGElement> & { className?: string }) {
   return (
     <svg
