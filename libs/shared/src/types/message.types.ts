@@ -19,7 +19,9 @@ export interface Message {
   senderType: SenderType;
   senderName: string;
   content: string;
+  /** @deprecated Use threadId instead */
   taskId: string | null;
+  threadId: string | null;
   inReplyTo: string | null;
   attachments: Attachment[];
   reactions: Reaction[];
@@ -30,7 +32,9 @@ export interface CreateMessageInput {
   senderType: SenderType;
   senderName: string;
   content: string;
+  /** @deprecated Use threadId instead */
   taskId?: string;
+  threadId?: string;
   inReplyTo?: string;
   attachments?: Attachment[];
 }

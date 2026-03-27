@@ -10,7 +10,8 @@ import { Mic, Send, Loader2, X, Square, Paperclip } from 'lucide-react';
 import { useWhisper } from '../hooks/useWhisper.js';
 import { useAudioDevices } from '../hooks/useAudioDevices.js';
 import { MicSelector } from '../components/MicSelector.js';
-import type { Message, Attachment } from '@app/shared';
+import type { Message, Attachment, Thread } from '@app/shared';
+import { ThreadHeader } from '../components/ThreadHeader.js';
 
 interface AgentInfo {
   role: string;
@@ -24,8 +25,8 @@ const MAX_BAR_H = 64;
 const VOLUME_CEIL = 0.7;
 
 export function ChatView() {
-  const { taskId, agentRole } = useParams<{
-    taskId?: string;
+  const { threadId, agentRole } = useParams<{
+    threadId?: string;
     agentRole?: string;
   }>();
   const {
@@ -36,7 +37,8 @@ export function ChatView() {
     sendMessage,
     toggleReaction,
     authorize,
-  } = useMessages(taskId, agentRole);
+  } = useMessages(threadId, agentRole);
+  const [thread, setThread] = useState<Thread | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -60,6 +62,18 @@ export function ChatView() {
       .then((data) => setAgents(data))
       .catch(() => {});
   }, []);
+
+  // Fetch thread details when threadId changes
+  useEffect(() => {
+    if (!threadId) {
+      setThread(null);
+      return;
+    }
+    fetch(`/api/threads/${threadId}`)
+      .then((r) => r.json())
+      .then((data) => setThread(data))
+      .catch(() => setThread(null));
+  }, [threadId]);
 
   // Filtered agents based on mention query
   const filteredAgents =
@@ -88,22 +102,22 @@ export function ChatView() {
   useEffect(() => {
     setReplyTo(null);
     setAttachments([]);
-  }, [taskId, agentRole]);
+  }, [threadId, agentRole]);
 
   // Derive chat title
   const chatAgent = agentRole ? agents.find((a) => a.role === agentRole) : null;
   const chatTitle = agentRole
     ? chatAgent?.displayName ||
       agentRole.replace(/_/g, ' ').replace(/\b\w/g, (l) => l.toUpperCase())
-    : taskId
-    ? `Thread`
+    : threadId
+    ? thread?.name || 'Thread'
     : 'Global Chat';
 
   const handleSubmit = () => {
     if (!text.trim() && attachments.length === 0) return;
     sendMessage(
       text.trim(),
-      taskId,
+      threadId,
       replyTo?.id,
       attachments.length > 0 ? attachments : undefined,
       agentRole
@@ -260,6 +274,11 @@ export function ChatView() {
           onAuthorize={authorize}
         />
       ))}
+
+      {/* Thread header */}
+      {threadId && thread && (
+        <ThreadHeader thread={thread} agents={agents} onThreadUpdate={setThread} />
+      )}
 
       {/* Messages */}
       <div className="flex-1 overflow-auto px-8 py-4">

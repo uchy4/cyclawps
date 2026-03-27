@@ -16,9 +16,9 @@ export function registerSocketHandlers(
       const id = uuid();
 
       db.prepare(
-        `INSERT INTO messages (id, sender_type, sender_name, content, task_id, in_reply_to, attachments, created_at)
-         VALUES (?, 'user', 'user', ?, ?, ?, ?, ?)`
-      ).run(id, data.content, data.taskId || null, data.inReplyTo || null, JSON.stringify(data.attachments || []), now);
+        `INSERT INTO messages (id, sender_type, sender_name, content, task_id, thread_id, in_reply_to, attachments, agent_role, created_at)
+         VALUES (?, 'user', 'user', ?, ?, ?, ?, ?, ?, ?)`
+      ).run(id, data.content, data.taskId || null, data.threadId || null, data.inReplyTo || null, JSON.stringify(data.attachments || []), data.agentRole || null, now);
 
       const attachments = data.attachments || [];
 
@@ -28,6 +28,7 @@ export function registerSocketHandlers(
         senderName: 'user',
         content: data.content,
         taskId: data.taskId || null,
+        threadId: data.threadId || null,
         inReplyTo: data.inReplyTo || null,
         attachments,
         reactions: [] as Reaction[],

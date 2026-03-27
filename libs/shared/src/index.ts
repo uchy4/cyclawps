@@ -1,5 +1,6 @@
 export * from './types/task.types.js';
 export * from './types/message.types.js';
+export * from './types/thread.types.js';
 export * from './types/pipeline.types.js';
 export * from './types/agent.types.js';
 export * from './types/log.types.js';

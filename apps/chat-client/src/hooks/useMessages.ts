@@ -8,18 +8,18 @@ export interface PendingAuth {
   description: string;
 }
 
-export function useMessages(taskId?: string, agentRole?: string) {
+export function useMessages(threadId?: string, agentRole?: string) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
   const [pendingAuths, setPendingAuths] = useState<PendingAuth[]>([]);
   const { socket, connected } = useSocket();
 
-  // Fetch messages, re-fetch when taskId or agentRole changes
+  // Fetch messages, re-fetch when threadId or agentRole changes
   useEffect(() => {
     setLoading(true);
     setMessages([]);
     const params = new URLSearchParams({ limit: '200' });
-    if (taskId) params.set('task_id', taskId);
+    if (threadId) params.set('thread_id', threadId);
     if (agentRole) params.set('agent_role', agentRole);
 
     fetch(`/api/messages?${params}`)
@@ -32,19 +32,25 @@ export function useMessages(taskId?: string, agentRole?: string) {
         console.error('Failed to fetch messages:', err);
         setLoading(false);
       });
-  }, [taskId, agentRole]);
+  }, [threadId, agentRole]);
 
   // Listen for real-time updates
   useEffect(() => {
     if (!socket) return;
 
     const onMessage = ({ message }: { message: Message }) => {
-      if (taskId) {
-        if (message.taskId === taskId) {
+      if (threadId) {
+        if (message.threadId === threadId) {
           setMessages((prev) => [...prev, message]);
         }
-      } else {
+      } else if (agentRole) {
+        // Agent channel: show all messages (server already filtered by agent_role)
         setMessages((prev) => [...prev, message]);
+      } else {
+        // Global chat: only show messages with no thread and no agent_role
+        if (!message.threadId && !(message as Record<string, unknown>)['agentRole']) {
+          setMessages((prev) => [...prev, message]);
+        }
       }
     };
 
@@ -78,12 +84,12 @@ export function useMessages(taskId?: string, agentRole?: string) {
       socket.off('pipeline:auth_required');
       socket.off('pipeline:completed');
     };
-  }, [socket, taskId, agentRole]);
+  }, [socket, threadId, agentRole]);
 
   const sendMessage = useCallback(
-    (content: string, msgTaskId?: string, inReplyTo?: string, attachments?: Attachment[], msgAgentRole?: string) => {
+    (content: string, msgThreadId?: string, inReplyTo?: string, attachments?: Attachment[], msgAgentRole?: string) => {
       if (!socket) return;
-      socket.emit('message:send', { content, taskId: msgTaskId, inReplyTo, attachments, agentRole: msgAgentRole });
+      socket.emit('message:send', { content, threadId: msgThreadId, inReplyTo, attachments, agentRole: msgAgentRole });
     },
     [socket]
   );

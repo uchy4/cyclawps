@@ -26,7 +26,7 @@ export function App() {
               <Route path="/kanban" element={<KanbanView />} />
               <Route path="/kanban/:guid" element={<KanbanView />} />
               <Route path="/chat" element={<ChatView />} />
-              <Route path="/chat/task/:taskId" element={<ChatView />} />
+              <Route path="/chat/thread/:threadId" element={<ChatView />} />
               <Route path="/chat/agent/:agentRole" element={<ChatView />} />
               <Route path="/configurator" element={<ConfiguratorView />} />
             </Routes>

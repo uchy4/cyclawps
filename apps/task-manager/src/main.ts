@@ -12,11 +12,13 @@ import { registerAgentRoutes } from './routes/agents.routes.js';
 import { registerSocketHandlers } from './ws/socket-handler.js';
 import { registerTranscribeRoutes } from './routes/transcribe.routes.js';
 import { registerLogRoutes } from './routes/logs.routes.js';
+import { registerThreadRoutes } from './routes/threads.routes.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { seedAgents } from '@app/agents';
 import { seedTasks } from './db/seed-tasks.js';
 import { seedMessages } from './db/seed-messages.js';
+import { seedThreads } from './db/seed-threads.js';
 import type { ServerToClientEvents, ClientToServerEvents } from '@app/shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -44,6 +46,7 @@ async function main() {
   // Seed example kanban tasks and messages
   seedTasks(db);
   seedMessages(db);
+  seedThreads(db);
 
   // Decorate fastify with db
   fastify.decorate('db', db);
@@ -58,6 +61,7 @@ async function main() {
   // Register routes
   registerTaskRoutes(fastify);
   registerMessageRoutes(fastify);
+  registerThreadRoutes(fastify);
   registerPipelineRoutes(fastify);
   registerAgentRoutes(fastify);
   registerTranscribeRoutes(fastify);

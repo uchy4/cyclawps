@@ -1,9 +1,15 @@
 import type Database from 'better-sqlite3';
+import { v4 as uuid } from 'uuid';
 import { CREATE_TABLES_SQL } from './schema.js';
 
 function columnExists(db: Database.Database, table: string, column: string): boolean {
   const cols = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
   return cols.some((c) => c.name === column);
+}
+
+function tableExists(db: Database.Database, table: string): boolean {
+  const row = db.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name=?`).get(table) as { name: string } | undefined;
+  return !!row;
 }
 
 export function runMigrations(db: Database.Database): void {
@@ -59,6 +65,57 @@ export function runMigrations(db: Database.Database): void {
     for (const [role, color] of Object.entries(defaults)) {
       update.run(color, role);
     }
+  }
+
+  // Add thread_id column to messages and migrate task-based threads
+  if (!columnExists(db, 'messages', 'thread_id')) {
+    console.log('Adding thread_id column to messages...');
+    db.exec('ALTER TABLE messages ADD COLUMN thread_id TEXT DEFAULT NULL');
+
+    // Create threads, thread_participants, thread_tasks tables if they don't exist yet
+    // (they should exist from CREATE_TABLES_SQL, but be safe for existing DBs)
+    if (!tableExists(db, 'threads')) {
+      db.exec(`CREATE TABLE IF NOT EXISTS threads (
+        id TEXT PRIMARY KEY, name TEXT NOT NULL,
+        created_at INTEGER NOT NULL, updated_at INTEGER NOT NULL
+      )`);
+    }
+    if (!tableExists(db, 'thread_tasks')) {
+      db.exec(`CREATE TABLE IF NOT EXISTS thread_tasks (
+        id TEXT PRIMARY KEY, thread_id TEXT NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
+        task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+        tagged_at INTEGER NOT NULL, UNIQUE(thread_id, task_id)
+      )`);
+    }
+    if (!tableExists(db, 'thread_participants')) {
+      db.exec(`CREATE TABLE IF NOT EXISTS thread_participants (
+        id TEXT PRIMARY KEY, thread_id TEXT NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
+        agent_role TEXT NOT NULL, added_at INTEGER NOT NULL, UNIQUE(thread_id, agent_role)
+      )`);
+    }
+
+    // Migrate: create a thread for each task that has messages
+    const taskRows = db.prepare(
+      `SELECT DISTINCT m.task_id, t.title, MIN(m.created_at) as earliest
+       FROM messages m JOIN tasks t ON t.id = m.task_id
+       WHERE m.task_id IS NOT NULL
+       GROUP BY m.task_id`
+    ).all() as Array<{ task_id: string; title: string; earliest: number }>;
+
+    const insertThread = db.prepare('INSERT INTO threads (id, name, created_at, updated_at) VALUES (?, ?, ?, ?)');
+    const insertThreadTask = db.prepare('INSERT INTO thread_tasks (id, thread_id, task_id, tagged_at) VALUES (?, ?, ?, ?)');
+    const updateMessages = db.prepare('UPDATE messages SET thread_id = ? WHERE task_id = ?');
+
+    for (const row of taskRows) {
+      const threadId = uuid();
+      const now = row.earliest;
+      insertThread.run(threadId, row.title, now, now);
+      insertThreadTask.run(uuid(), threadId, row.task_id, now);
+      updateMessages.run(threadId, row.task_id);
+    }
+
+    db.exec('CREATE INDEX IF NOT EXISTS idx_messages_thread_id ON messages(thread_id)');
+    console.log(`Migrated ${taskRows.length} task-based threads to generic threads.`);
   }
 
   console.log('Migrations complete.');

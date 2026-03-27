@@ -22,12 +22,36 @@ CREATE TABLE IF NOT EXISTS guid_counter (
 );
 INSERT OR IGNORE INTO guid_counter (prefix, next_val) VALUES ('TASK', 1);
 
+CREATE TABLE IF NOT EXISTS threads (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  created_at INTEGER NOT NULL,
+  updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS thread_participants (
+  id TEXT PRIMARY KEY,
+  thread_id TEXT NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
+  agent_role TEXT NOT NULL,
+  added_at INTEGER NOT NULL,
+  UNIQUE(thread_id, agent_role)
+);
+
+CREATE TABLE IF NOT EXISTS thread_tasks (
+  id TEXT PRIMARY KEY,
+  thread_id TEXT NOT NULL REFERENCES threads(id) ON DELETE CASCADE,
+  task_id TEXT NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
+  tagged_at INTEGER NOT NULL,
+  UNIQUE(thread_id, task_id)
+);
+
 CREATE TABLE IF NOT EXISTS messages (
   id TEXT PRIMARY KEY,
   sender_type TEXT NOT NULL CHECK(sender_type IN ('agent', 'user', 'system')),
   sender_name TEXT NOT NULL,
   content TEXT NOT NULL,
   task_id TEXT REFERENCES tasks(id) ON DELETE SET NULL,
+  thread_id TEXT REFERENCES threads(id) ON DELETE SET NULL,
   in_reply_to TEXT REFERENCES messages(id) ON DELETE SET NULL,
   created_at INTEGER NOT NULL
 );
@@ -95,8 +119,11 @@ CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status);
 CREATE INDEX IF NOT EXISTS idx_tasks_assigned_agent ON tasks(assigned_agent);
 CREATE INDEX IF NOT EXISTS idx_tasks_guid ON tasks(guid);
 CREATE INDEX IF NOT EXISTS idx_messages_task_id ON messages(task_id);
+CREATE INDEX IF NOT EXISTS idx_messages_thread_id ON messages(thread_id);
 CREATE INDEX IF NOT EXISTS idx_agent_runs_task_id ON agent_runs(task_id);
 CREATE INDEX IF NOT EXISTS idx_agent_runs_agent_role ON agent_runs(agent_role);
 CREATE INDEX IF NOT EXISTS idx_task_logs_task_guid ON task_logs(task_guid);
 CREATE INDEX IF NOT EXISTS idx_task_logs_created_at ON task_logs(created_at);
+CREATE INDEX IF NOT EXISTS idx_thread_participants_thread_id ON thread_participants(thread_id);
+CREATE INDEX IF NOT EXISTS idx_thread_tasks_thread_id ON thread_tasks(thread_id);
 `;

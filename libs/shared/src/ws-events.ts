@@ -1,4 +1,4 @@
-import type { Task, Message, Reaction, Attachment, TaskLog, AgentRunStatus, PipelineRunStatus } from './index.js';
+import type { Task, Message, Reaction, Attachment, TaskLog, AgentRunStatus, PipelineRunStatus, Thread, ThreadParticipant, ThreadTaskTag } from './index.js';
 
 // Server -> Client events
 export interface ServerToClientEvents {
@@ -13,11 +13,18 @@ export interface ServerToClientEvents {
   'pipeline:stage': (data: { taskId: string; stageId: string; status: PipelineRunStatus }) => void;
   'pipeline:auth_required': (data: { taskId: string; stageId: string; description: string }) => void;
   'pipeline:completed': (data: { taskId: string }) => void;
+  'thread:created': (data: { thread: Thread }) => void;
+  'thread:updated': (data: { thread: Thread }) => void;
+  'thread:deleted': (data: { threadId: string }) => void;
+  'thread:participant_added': (data: { threadId: string; participant: ThreadParticipant }) => void;
+  'thread:participant_removed': (data: { threadId: string; agentRole: string }) => void;
+  'thread:task_tagged': (data: { threadId: string; tag: ThreadTaskTag }) => void;
+  'thread:task_untagged': (data: { threadId: string; taskId: string }) => void;
 }
 
 // Client -> Server events
 export interface ClientToServerEvents {
-  'message:send': (data: { content: string; taskId?: string; inReplyTo?: string; attachments?: Attachment[] }) => void;
+  'message:send': (data: { content: string; taskId?: string; threadId?: string; inReplyTo?: string; attachments?: Attachment[]; agentRole?: string }) => void;
   'message:react': (data: { messageId: string; emoji: string }) => void;
   'pipeline:authorize': (data: { taskId: string; stageId: string; approved: boolean }) => void;
 }

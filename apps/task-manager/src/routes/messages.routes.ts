@@ -14,6 +14,7 @@ function rowToMessage(row: Record<string, unknown>, reactions: Reaction[] = []):
     senderName: row['sender_name'] as string,
     content: row['content'] as string,
     taskId: (row['task_id'] as string) || null,
+    threadId: (row['thread_id'] as string) || null,
     inReplyTo: (row['in_reply_to'] as string) || null,
     attachments: parseAttachments(row['attachments']),
     reactions,
@@ -49,12 +50,15 @@ export function registerMessageRoutes(fastify: FastifyInstance): void {
 
   // List messages
   fastify.get('/api/messages', async (request) => {
-    const { task_id, agent_role, limit = '100', offset = '0' } = request.query as Record<string, string>;
+    const { task_id, thread_id, agent_role, limit = '100', offset = '0' } = request.query as Record<string, string>;
     let sql = 'SELECT * FROM messages';
     const params: unknown[] = [];
     const conditions: string[] = [];
 
-    if (task_id) {
+    if (thread_id) {
+      conditions.push('thread_id = ?');
+      params.push(thread_id);
+    } else if (task_id) {
       conditions.push('task_id = ?');
       params.push(task_id);
     }
@@ -64,9 +68,10 @@ export function registerMessageRoutes(fastify: FastifyInstance): void {
       params.push(agent_role);
     }
 
-    // If neither task_id nor agent_role, show global chat (both null)
-    if (!task_id && !agent_role) {
+    // If no scoping params, show global chat (all nulls)
+    if (!task_id && !thread_id && !agent_role) {
       conditions.push('task_id IS NULL');
+      conditions.push('thread_id IS NULL');
       conditions.push('agent_role IS NULL');
     }
 
@@ -86,14 +91,14 @@ export function registerMessageRoutes(fastify: FastifyInstance): void {
 
   // Create message
   fastify.post('/api/messages', async (request) => {
-    const input = request.body as { senderType: string; senderName: string; content: string; taskId?: string; inReplyTo?: string; attachments?: Attachment[] };
+    const input = request.body as { senderType: string; senderName: string; content: string; taskId?: string; threadId?: string; inReplyTo?: string; attachments?: Attachment[] };
     const now = Date.now();
     const id = uuid();
 
     db.prepare(
-      `INSERT INTO messages (id, sender_type, sender_name, content, task_id, in_reply_to, attachments, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(id, input.senderType, input.senderName, input.content, input.taskId || null, input.inReplyTo || null, JSON.stringify(input.attachments || []), now);
+      `INSERT INTO messages (id, sender_type, sender_name, content, task_id, thread_id, in_reply_to, attachments, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(id, input.senderType, input.senderName, input.content, input.taskId || null, input.threadId || null, input.inReplyTo || null, JSON.stringify(input.attachments || []), now);
 
     const message = rowToMessage(
       db.prepare('SELECT * FROM messages WHERE id = ?').get(id) as Record<string, unknown>
