@@ -6,7 +6,7 @@
     "dev": "NX_DAEMON=false nx run-many --target=serve --projects=task-manager,dashboard,whisper-service --parallel",
     "dev:server": "NX_DAEMON=false nx run task-manager:serve",
     "dev:ui": "NX_DAEMON=false nx run dashboard:serve",
-    "dev:desktop": "NX_DAEMON=false nx run-many --target=serve --projects=dashboard,desktop --parallel",
+    "dev:desktop": "NX_DAEMON=false nx run desktop:serve",
     "build": "nx run-many --target=build --all",
     "desktop:make": "nx run desktop:make",
     "kill-ports": "for p in 3000 3001 4000 4001 4002 4200 4201 4202; do lsof -ti :$p 2>/dev/null; done | sort -u | xargs kill -9 2>/dev/null; echo 'All dev ports cleared'",

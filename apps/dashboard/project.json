@@ -2,6 +2,7 @@
   "name": "dashboard",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "tags": ["scope:dashboard"],
+  "implicitDependencies": ["task-manager", "whisper-service"],
   "targets": {
     "serve": {
       "executor": "nx:run-commands",
