@@ -141,7 +141,7 @@ export function ChatSubSidebar() {
           to="/chat"
           end
           className={({ isActive }) =>
-            `flex items-center gap-2 px-3 py-2 rounded-md text-sm transition-colors ${
+            `flex items-center gap-2 px-3 py-2 rounded-md text-base transition-colors ${
               isActive ? 'text-orange-400 font-medium bg-slate-700/50' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/30'
             }`
           }
@@ -153,10 +153,10 @@ export function ChatSubSidebar() {
         {/* Agents Section */}
         <button
           onClick={() => setAgentsOpen(!agentsOpen)}
-          className="flex items-center gap-1.5 px-3 py-1.5 mt-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-400 cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 mt-2 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-400 cursor-pointer"
         >
-          {agentsOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-          <Users className="w-3 h-3" />
+          {agentsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          <Users className="w-4 h-4" />
           Agents
         </button>
         {agentsOpen && agents.map(agent => {
@@ -168,7 +168,7 @@ export function ChatSubSidebar() {
               key={agent.role}
               to={`/chat/agent/${agent.role}`}
               className={({ isActive }) =>
-                `flex items-center gap-2 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                `flex items-center gap-2 px-3 py-1.5 rounded-md text-base transition-colors ${
                   isActive ? 'text-orange-400 font-medium bg-slate-700/50' : 'text-slate-300 hover:text-slate-200 hover:bg-slate-700/30'
                 }`
               }
@@ -182,10 +182,10 @@ export function ChatSubSidebar() {
         {/* Threads Section */}
         <button
           onClick={() => setThreadsOpen(!threadsOpen)}
-          className="flex items-center gap-1.5 px-3 py-1.5 mt-2 text-[10px] font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-400 cursor-pointer"
+          className="flex items-center gap-1.5 px-3 py-1.5 mt-2 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-400 cursor-pointer"
         >
-          {threadsOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
-          <MessageSquare className="w-3 h-3" />
+          {threadsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+          <MessageSquare className="w-4 h-4" />
           Threads
         </button>
         {threadsOpen && activeThreads.map(task => {
@@ -195,7 +195,7 @@ export function ChatSubSidebar() {
               <NavLink
                 to={`/chat/task/${task.id}`}
                 className={({ isActive }) =>
-                  `flex flex-col gap-0.5 px-3 py-1.5 rounded-md text-sm transition-colors ${
+                  `flex flex-col gap-0.5 px-3 py-1.5 rounded-md text-base transition-colors ${
                     isActive ? 'text-orange-400 font-medium bg-slate-700/50' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/30'
                   }`
                 }
@@ -233,7 +233,7 @@ export function ChatSubSidebar() {
                 <NavLink
                   to={`/chat/task/${task.id}`}
                   className={({ isActive }) =>
-                    `flex flex-col gap-0.5 px-3 py-1.5 rounded-md text-sm transition-colors opacity-50 ${
+                    `flex flex-col gap-0.5 px-3 py-1.5 rounded-md text-base transition-colors opacity-50 ${
                       isActive ? 'text-orange-400 font-medium bg-slate-700/50' : 'text-slate-500 hover:text-slate-400 hover:bg-slate-700/30'
                     }`
                   }

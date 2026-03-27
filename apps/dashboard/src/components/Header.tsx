@@ -40,7 +40,7 @@ export function Header({ collapsed, onToggle }: HeaderProps) {
   const showStatus = location.pathname.startsWith('/kanban');
 
   return (
-    <header className="flex items-center bg-slate-800 border-b-2 border-orange-400 shrink-0">
+    <header className="flex items-center bg-slate-800 border-b-2 border-orange-400 shrink-0 h-14">
       <div className={`${collapsed ? 'w-14' : 'w-20 lg:w-60'} flex justify-center items-center gap-3 shrink-0 border-r border-slate-700 transition-all duration-200`}>
         <img src="/claw.svg" alt="Logo" className={collapsed ? "w-8 h-12 m-2" : "h-12 m-2"} />
         {!collapsed && (

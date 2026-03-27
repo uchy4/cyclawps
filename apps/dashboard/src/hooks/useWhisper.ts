@@ -5,7 +5,7 @@ type WhisperStatus = 'idle' | 'recording' | 'transcribing';
 const BAR_COUNT = 10;
 const POLL_INTERVAL_MS = 120; // push a new bar roughly 8× per second
 
-export function useWhisper() {
+export function useWhisper(deviceId?: string | null) {
   const [status, setStatus] = useState<WhisperStatus>('idle');
   const [levels, setLevels] = useState<number[]>(() => new Array(BAR_COUNT).fill(0));
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -39,7 +39,9 @@ export function useWhisper() {
   }, []);
 
   const startRecording = useCallback(async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: deviceId ? { deviceId: { exact: deviceId } } : true,
+    });
     const mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
     chunksRef.current = [];
 
@@ -63,7 +65,7 @@ export function useWhisper() {
 
     // Start polling
     rafRef.current = requestAnimationFrame(pollLevels);
-  }, [pollLevels]);
+  }, [deviceId, pollLevels]);
 
   const cleanup = useCallback(() => {
     cancelAnimationFrame(rafRef.current);
