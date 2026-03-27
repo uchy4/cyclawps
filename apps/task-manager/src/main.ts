@@ -14,10 +14,10 @@ import { registerTranscribeRoutes } from './routes/transcribe.routes.js';
 import { registerLogRoutes } from './routes/logs.routes.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { seedAgents } from '@cyclawps/agents';
+import { seedAgents } from '@app/agents';
 import { seedTasks } from './db/seed-tasks.js';
 import { seedMessages } from './db/seed-messages.js';
-import type { ServerToClientEvents, ClientToServerEvents } from '@cyclawps/shared';
+import type { ServerToClientEvents, ClientToServerEvents } from '@app/shared';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..');

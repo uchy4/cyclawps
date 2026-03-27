@@ -1,6 +1,6 @@
 import type Database from 'better-sqlite3';
 import type { Server } from 'socket.io';
-import type { ServerToClientEvents, ClientToServerEvents } from '@cyclawps/shared';
+import type { ServerToClientEvents, ClientToServerEvents } from '@app/shared';
 
 declare module 'fastify' {
   interface FastifyInstance {

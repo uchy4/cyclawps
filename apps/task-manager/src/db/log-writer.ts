@@ -1,7 +1,7 @@
 import { v4 as uuid } from 'uuid';
 import type Database from 'better-sqlite3';
 import type { Server } from 'socket.io';
-import type { TaskLog, LogStatus, ServerToClientEvents, ClientToServerEvents } from '@cyclawps/shared';
+import type { TaskLog, LogStatus, ServerToClientEvents, ClientToServerEvents } from '@app/shared';
 
 interface WriteLogParams {
   taskGuid: string;

@@ -1,4 +1,4 @@
-import type { CreateAgentConfigInput } from '@cyclawps/shared';
+import type { CreateAgentConfigInput } from '@app/shared';
 
 interface PromptStepProps {
   data: CreateAgentConfigInput;

@@ -20,8 +20,12 @@
     "jsx": "react-jsx",
     "baseUrl": ".",
     "paths": {
-      "@cyclawps/shared": ["libs/shared/src/index.ts"],
-      "@cyclawps/agents": ["libs/agents/src/index.ts"]
+      "@app/shared": ["libs/shared/src/index.ts"],
+      "@app/agents": ["libs/agents/src/index.ts"],
+      "@app/styles/*": ["libs/shared/src/styles/*"],
+      "@app/kanban/*": ["apps/kanban-board/src/*"],
+      "@app/chat/*": ["apps/chat-client/src/*"],
+      "@app/configurator/*": ["apps/agent-configurator/src/*"]
     }
   }
 }

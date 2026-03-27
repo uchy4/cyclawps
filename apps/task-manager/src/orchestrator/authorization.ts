@@ -1,5 +1,5 @@
 import type { Server } from 'socket.io';
-import type { ServerToClientEvents, ClientToServerEvents } from '@cyclawps/shared';
+import type { ServerToClientEvents, ClientToServerEvents } from '@app/shared';
 
 interface PendingAuth {
   resolve: (approved: boolean) => void;

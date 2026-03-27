@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { AgentConfig, CreateAgentConfigInput, UpdateAgentConfigInput } from '@cyclawps/shared';
+import type { AgentConfig, CreateAgentConfigInput, UpdateAgentConfigInput } from '@app/shared';
 
 export function useAgents() {
   const [agents, setAgents] = useState<AgentConfig[]>([]);

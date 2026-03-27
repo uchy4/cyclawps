@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { AgentList } from '@cyclawps/configurator/components/AgentList.js';
-import { AgentEditor } from '@cyclawps/configurator/components/AgentEditor.js';
-import { Drawer } from '@cyclawps/shared';
+import { AgentList } from '@app/configurator/components/AgentList';
+import { AgentEditor } from '@app/configurator/components/AgentEditor';
+import { Drawer } from '@app/shared';
 
 export function ConfiguratorView() {
   const [drawerOpen, setDrawerOpen] = useState(false);

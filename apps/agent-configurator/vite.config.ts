@@ -7,8 +7,8 @@ export default defineConfig({
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
-      '@cyclawps/shared': path.resolve(__dirname, '../../libs/shared/src/index.ts'),
-      '@cyclawps/styles': path.resolve(__dirname, '../../libs/shared/src/styles'),
+      '@app/shared': path.resolve(__dirname, '../../libs/shared/src/index.ts'),
+      '@app/styles': path.resolve(__dirname, '../../libs/shared/src/styles'),
     },
   },
   server: {

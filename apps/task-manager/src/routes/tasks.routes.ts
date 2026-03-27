@@ -1,6 +1,6 @@
 import type { FastifyInstance } from 'fastify';
 import { v4 as uuid } from 'uuid';
-import type { Task, CreateTaskInput, UpdateTaskInput } from '@cyclawps/shared';
+import type { Task, CreateTaskInput, UpdateTaskInput } from '@app/shared';
 import { nextGuid } from '../db/guid.js';
 import { writeTaskLog } from '../db/log-writer.js';
 

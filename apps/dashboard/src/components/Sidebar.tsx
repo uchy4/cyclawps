@@ -1,8 +1,8 @@
 import { NavLink, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { LayoutGrid, MessageSquare, Bot, ChevronDown, ChevronRight, Archive, Hash, Users } from 'lucide-react';
-import type { Task, AgentConfig } from '@cyclawps/shared';
-import { ROLE_COLORS, formatRoleName } from '@cyclawps/shared';
+import type { Task, AgentConfig } from '@app/shared';
+import { ROLE_COLORS, formatRoleName } from '@app/shared';
 
 interface SidebarProps {
   collapsed: boolean;

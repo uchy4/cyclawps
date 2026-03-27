@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAgents } from '../hooks/useAgents.js';
-import { AVAILABLE_TOOLS, ROLE_COLORS } from '@cyclawps/shared';
-import type { CreateAgentConfigInput } from '@cyclawps/shared';
+import { AVAILABLE_TOOLS, ROLE_COLORS } from '@app/shared';
+import type { CreateAgentConfigInput } from '@app/shared';
 
 const PRESET_COLORS = [
   '#a371f7', '#58a6ff', '#3fb950', '#d29922', '#8b949e',

@@ -1,8 +1,8 @@
 import { useLocation } from 'react-router-dom';
-import { useSocket } from '@cyclawps/shared';
+import { useSocket } from '@app/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { useState, useEffect } from 'react';
-import type { Task } from '@cyclawps/shared';
+import type { Task } from '@app/shared';
 
 function usePageTitle(): string {
   const location = useLocation();

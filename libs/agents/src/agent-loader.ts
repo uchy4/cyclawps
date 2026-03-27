@@ -1,5 +1,5 @@
 import type Database from 'better-sqlite3';
-import type { AgentConfig } from '@cyclawps/shared';
+import type { AgentConfig } from '@app/shared';
 
 export function rowToAgentConfig(row: Record<string, unknown>): AgentConfig {
   return {

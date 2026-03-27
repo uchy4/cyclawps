@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import type { Task, TaskStatus, CreateTaskInput } from '@cyclawps/shared';
+import type { Task, TaskStatus, CreateTaskInput } from '@app/shared';
 
 const STATUSES: { value: TaskStatus; label: string }[] = [
   { value: 'todo', label: 'To Do' },

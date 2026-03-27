@@ -1,5 +1,5 @@
-import type { CreateAgentConfigInput } from '@cyclawps/shared';
-import { AVAILABLE_TOOLS } from '@cyclawps/shared';
+import type { CreateAgentConfigInput } from '@app/shared';
+import { AVAILABLE_TOOLS } from '@app/shared';
 
 interface ToolsStepProps {
   data: CreateAgentConfigInput;

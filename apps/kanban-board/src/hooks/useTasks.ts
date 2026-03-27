@@ -1,7 +1,7 @@
 import { useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import type { Task, TaskStatus, UpdateTaskInput } from '@cyclawps/shared';
-import { useSocket } from '@cyclawps/shared';
+import type { Task, TaskStatus, UpdateTaskInput } from '@app/shared';
+import { useSocket } from '@app/shared';
 
 const TASKS_KEY = ['tasks'];
 

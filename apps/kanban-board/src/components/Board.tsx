@@ -13,11 +13,11 @@ import {
 } from '@dnd-kit/core';
 import { useTasks } from '../hooks/useTasks.js';
 import { Column } from './Column.js';
-import { Drawer } from '@cyclawps/shared';
+import { Drawer } from '@app/shared';
 import { TaskEditor } from './TaskEditor.js';
 import { TaskCard } from './TaskCard.js';
 import { TaskLogs } from './TaskLogs.js';
-import type { Task, TaskStatus, CreateTaskInput } from '@cyclawps/shared';
+import type { Task, TaskStatus, CreateTaskInput } from '@app/shared';
 
 type DrawerTab = 'edit' | 'logs';
 

@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
-import { Board } from '@cyclawps/kanban/components/Board.js';
-import { useSocket } from '@cyclawps/shared';
+import { Board } from '@app/kanban/components/Board';
+import { useSocket } from '@app/shared';
 
 export function KanbanView() {
   const { connected } = useSocket();

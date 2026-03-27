@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { v4 as uuid } from 'uuid';
-import type { CreateAgentConfigInput, UpdateAgentConfigInput } from '@cyclawps/shared';
-import { rowToAgentConfig } from '@cyclawps/agents';
+import type { CreateAgentConfigInput, UpdateAgentConfigInput } from '@app/shared';
+import { rowToAgentConfig } from '@app/agents';
 
 export function registerAgentRoutes(fastify: FastifyInstance): void {
   const db = fastify.db;
