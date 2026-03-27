@@ -55,7 +55,7 @@ export function seedAgents(db: Database.Database, agentsDir?: string): void {
       architect: '#58a6ff',
       developer: '#3fb950',
       tester: '#d29922',
-      gopher: '#8b949e',
+      grunt: '#8b949e',
     };
 
     const result = insertStmt.run(

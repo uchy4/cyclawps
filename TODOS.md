@@ -40,7 +40,7 @@
 - [x] Nx monorepo scaffold with TypeScript
 - [x] Shared types library (libs/shared)
 - [x] Agents library with SDK wrapper (libs/agents)
-- [x] Agent YAML seed files (Pam, Archie, Devin, Tessa, Gopher)
+- [x] Agent YAML seed files (Pam, Archie, Devin, Tessa, Grunt)
 - [x] Fastify task-manager server with SQLite
 - [x] REST API — tasks, messages, agents, pipeline CRUD
 - [x] WebSocket real-time updates via socket.io

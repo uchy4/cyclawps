@@ -23,7 +23,7 @@ export const ROLE_COLORS: Record<string, string> = {
   architect: '#58a6ff',
   developer: '#3fb950',
   tester: '#d29922',
-  gopher: '#8b949e',
+  grunt: '#8b949e',
   user: '#c9d1d9',
   system: '#8b949e',
 };

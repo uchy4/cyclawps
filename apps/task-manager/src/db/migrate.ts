@@ -53,7 +53,7 @@ export function runMigrations(db: Database.Database): void {
       architect: '#58a6ff',
       developer: '#3fb950',
       tester: '#d29922',
-      gopher: '#8b949e',
+      grunt: '#8b949e',
     };
     const update = db.prepare('UPDATE agent_configs SET accent_color = ? WHERE role = ?');
     for (const [role, color] of Object.entries(defaults)) {
