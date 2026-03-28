@@ -43,8 +43,8 @@ export function MicSelector({ devices, selectedDeviceId, onSelect, disabled }: M
         disabled={disabled}
         className={`flex items-center py-1 transition-colors ${
           disabled
-            ? 'text-slate-600 cursor-default'
-            : 'text-slate-400 hover:text-orange-400 cursor-pointer'
+            ? 'text-zinc-600 cursor-default'
+            : 'text-zinc-400 hover:text-orange-400 cursor-pointer'
         }`}
         aria-label="Select microphone"
       >
@@ -55,8 +55,8 @@ export function MicSelector({ devices, selectedDeviceId, onSelect, disabled }: M
       </button>
 
       {open && (
-        <div className="absolute bottom-full mb-2 right-0 w-64 bg-slate-800 border border-slate-700 rounded-lg py-1 shadow-lg z-50">
-          <div className="px-3 py-1.5 text-xs font-medium text-slate-500 uppercase tracking-wider">
+        <div className="absolute bottom-full mb-2 right-0 w-64 bg-zinc-800 border border-zinc-700 rounded-lg py-1 shadow-lg z-50">
+          <div className="px-3 py-1.5 text-xs font-medium text-zinc-500 uppercase tracking-wider">
             Microphone
           </div>
 
@@ -66,7 +66,7 @@ export function MicSelector({ devices, selectedDeviceId, onSelect, disabled }: M
             className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
               selectedDeviceId === null
                 ? 'text-orange-400 bg-orange-600/10'
-                : 'text-slate-300 hover:bg-slate-700/50'
+                : 'text-zinc-300 hover:bg-zinc-700/50'
             }`}
           >
             <span className="w-4 shrink-0">
@@ -83,7 +83,7 @@ export function MicSelector({ devices, selectedDeviceId, onSelect, disabled }: M
               className={`w-full flex items-center gap-2 px-3 py-2 text-sm transition-colors ${
                 selectedDeviceId === device.deviceId
                   ? 'text-orange-400 bg-orange-600/10'
-                  : 'text-slate-300 hover:bg-slate-700/50'
+                  : 'text-zinc-300 hover:bg-zinc-700/50'
               }`}
             >
               <span className="w-4 shrink-0">

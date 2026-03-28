@@ -8,8 +8,8 @@ const STATUSES: { value: TaskStatus; label: string }[] = [
   { value: 'done', label: 'Done' },
 ];
 
-const inputClass = 'w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white placeholder-slate-400 text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors';
-const labelClass = 'block text-sm font-medium text-slate-300 mb-1.5';
+const inputClass = 'w-full px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-800 text-white placeholder-zinc-400 text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors';
+const labelClass = 'block text-sm font-medium text-zinc-300 mb-1.5';
 
 interface TaskEditorProps {
   task: Task | null; // null = creating new task
@@ -138,7 +138,7 @@ export function TaskEditor({ task, defaultStatus, onSave, onDelete, onClose }: T
             onChange={(e) => updateField('priority', parseInt(e.target.value, 10) || 0)}
             className={inputClass}
           />
-          <p className="text-xs text-slate-500 mt-1">0–10, higher = more urgent</p>
+          <p className="text-xs text-zinc-500 mt-1">0–10, higher = more urgent</p>
         </div>
         <div>
           <label htmlFor="task-order" className={labelClass}>Order</label>
@@ -151,7 +151,7 @@ export function TaskEditor({ task, defaultStatus, onSave, onDelete, onClose }: T
             onChange={(e) => updateField('sortOrder', parseInt(e.target.value, 10) || 0)}
             className={inputClass}
           />
-          <p className="text-xs text-slate-500 mt-1">Position in column</p>
+          <p className="text-xs text-zinc-500 mt-1">Position in column</p>
         </div>
       </div>
 
@@ -174,7 +174,7 @@ export function TaskEditor({ task, defaultStatus, onSave, onDelete, onClose }: T
 
       {/* Metadata (read-only for now if task exists) */}
       {task && (
-        <div className="text-xs text-slate-500 space-y-1 pt-2 border-t border-slate-700">
+        <div className="text-xs text-zinc-500 space-y-1 pt-2 border-t border-zinc-700">
           <p>Created: {new Date(task.createdAt).toLocaleString()}</p>
           <p>Updated: {new Date(task.updatedAt).toLocaleString()}</p>
           {task.pipelineStageId && <p>Pipeline stage: {task.pipelineStageId}</p>}
@@ -182,7 +182,7 @@ export function TaskEditor({ task, defaultStatus, onSave, onDelete, onClose }: T
       )}
 
       {/* Actions */}
-      <div className="flex items-center gap-3 pt-4 border-t border-slate-700">
+      <div className="flex items-center gap-3 pt-4 border-t border-zinc-700">
         <button
           onClick={handleSave}
           disabled={saving || !formData.title?.trim()}

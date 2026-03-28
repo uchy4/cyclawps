@@ -29,8 +29,8 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
   Agent: 'Sub-agents',
 };
 
-const inputClass = 'w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white placeholder-slate-400 text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors';
-const labelClass = 'block text-sm font-medium text-slate-300 mb-1.5';
+const inputClass = 'w-full px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-800 text-white placeholder-zinc-400 text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors';
+const labelClass = 'block text-sm font-medium text-zinc-300 mb-1.5';
 
 interface AgentEditorProps {
   editRole: string | null;
@@ -125,7 +125,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
           <div>
             <label htmlFor="display-name" className={labelClass}>Display Name / Persona</label>
             <input id="display-name" name="displayName" type="text" value={formData.displayName || ''} onChange={(e) => updateField('displayName', e.target.value)} placeholder="e.g., Archie, Pam..." className={inputClass} />
-            <p className="text-xs text-slate-500 mt-1">Optional friendly name shown in the UI</p>
+            <p className="text-xs text-zinc-500 mt-1">Optional friendly name shown in the UI</p>
           </div>
           <div>
             <label htmlFor="agent-role" className={labelClass}>
@@ -157,7 +157,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
                   type="color"
                   value={formData.accentColor || '#8b949e'}
                   onChange={(e) => updateField('accentColor', e.target.value)}
-                  className="w-7 h-7 rounded-full cursor-pointer border-0 bg-transparent [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-2 [&::-webkit-color-swatch]:border-slate-600"
+                  className="w-7 h-7 rounded-full cursor-pointer border-0 bg-transparent [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-2 [&::-webkit-color-swatch]:border-zinc-600"
                   title="Custom color"
                 />
               </div>
@@ -165,14 +165,14 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
             {formData.accentColor && (
               <div className="flex items-center gap-2 mt-2">
                 <span className="w-4 h-4 rounded-full" style={{ backgroundColor: formData.accentColor }} />
-                <span className="text-xs text-slate-400 font-mono">{formData.accentColor}</span>
+                <span className="text-xs text-zinc-400 font-mono">{formData.accentColor}</span>
               </div>
             )}
           </div>
         </div>
       </section>
 
-      <hr className="border-slate-700" />
+      <hr className="border-zinc-700" />
 
       {/* Model Section */}
       <section>
@@ -218,7 +218,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
         </div>
       </section>
 
-      <hr className="border-slate-700" />
+      <hr className="border-zinc-700" />
 
       {/* Tools Section */}
       <section>
@@ -235,18 +235,18 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
                 className={`px-3 py-2 rounded-lg text-sm text-left transition-colors ${
                   isSelected
                     ? 'bg-orange-600/20 border border-orange-500/50 text-orange-400'
-                    : 'bg-slate-800 border border-slate-700 text-slate-400 hover:border-slate-600'
+                    : 'bg-zinc-800 border border-zinc-700 text-zinc-400 hover:border-zinc-600'
                 }`}
               >
                 <div className="font-medium">{tool}</div>
-                <div className="text-[10px] text-slate-500">{TOOL_DESCRIPTIONS[tool] || ''}</div>
+                <div className="text-[10px] text-zinc-500">{TOOL_DESCRIPTIONS[tool] || ''}</div>
               </button>
             );
           })}
         </div>
       </section>
 
-      <hr className="border-slate-700" />
+      <hr className="border-zinc-700" />
 
       {/* System Prompt Section */}
       <section>
@@ -263,7 +263,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
       </section>
 
       {/* Actions */}
-      <div className="flex items-center gap-3 pt-4 border-t border-slate-700">
+      <div className="flex items-center gap-3 pt-4 border-t border-zinc-700">
         <button
           onClick={handleSave}
           disabled={saving || !formData.name || !formData.role || !formData.systemPrompt}

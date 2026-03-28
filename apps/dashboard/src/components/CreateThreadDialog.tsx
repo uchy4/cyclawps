@@ -76,13 +76,13 @@ export function CreateThreadDialog({ open, onClose }: CreateThreadDialogProps) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
-        className="bg-slate-800 border border-slate-700 rounded-xl shadow-xl w-full max-w-md mx-4"
+        className="bg-zinc-800 border border-zinc-700 rounded-xl shadow-xl w-full max-w-md mx-4"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-slate-700">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-zinc-700">
           <h2 className="text-base font-semibold text-white">New Thread</h2>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-200 cursor-pointer">
+          <button onClick={onClose} className="text-zinc-400 hover:text-zinc-200 cursor-pointer">
             <X className="w-4 h-4" />
           </button>
         </div>
@@ -91,20 +91,20 @@ export function CreateThreadDialog({ open, onClose }: CreateThreadDialogProps) {
         <div className="px-5 py-4 space-y-4">
           {/* Name */}
           <div>
-            <label className="block text-xs text-slate-400 mb-1.5">Thread Name</label>
+            <label className="block text-xs text-zinc-400 mb-1.5">Thread Name</label>
             <input
               ref={nameRef}
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') handleCreate(); }}
               placeholder="e.g. Sprint Planning, Bug Triage..."
-              className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-orange-400 transition-colors"
+              className="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-orange-400 transition-colors"
             />
           </div>
 
           {/* Agents */}
           <div>
-            <label className="block text-xs text-slate-400 mb-1.5">Agents (optional)</label>
+            <label className="block text-xs text-zinc-400 mb-1.5">Agents (optional)</label>
             <div className="flex flex-wrap gap-1.5">
               {agents.map((a) => {
                 const selected = selectedAgents.has(a.role);
@@ -116,7 +116,7 @@ export function CreateThreadDialog({ open, onClose }: CreateThreadDialogProps) {
                     className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors cursor-pointer ${
                       selected
                         ? 'border-orange-400/50 bg-orange-400/10 text-orange-400'
-                        : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                        : 'border-zinc-600 text-zinc-400 hover:border-zinc-500'
                     }`}
                   >
                     <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
@@ -131,7 +131,7 @@ export function CreateThreadDialog({ open, onClose }: CreateThreadDialogProps) {
           {/* Tasks */}
           {tasks.length > 0 && (
             <div>
-              <label className="block text-xs text-slate-400 mb-1.5">Tag Tasks (optional)</label>
+              <label className="block text-xs text-zinc-400 mb-1.5">Tag Tasks (optional)</label>
               <div className="flex flex-wrap gap-1.5 max-h-32 overflow-y-auto">
                 {tasks.map((t) => {
                   const selected = selectedTasks.has(t.id);
@@ -142,7 +142,7 @@ export function CreateThreadDialog({ open, onClose }: CreateThreadDialogProps) {
                       className={`inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border transition-colors cursor-pointer ${
                         selected
                           ? 'border-orange-400/50 bg-orange-400/10 text-orange-400'
-                          : 'border-slate-600 text-slate-400 hover:border-slate-500'
+                          : 'border-zinc-600 text-zinc-400 hover:border-zinc-500'
                       }`}
                     >
                       <span className="font-mono text-[10px]">{t.guid}</span>
@@ -157,10 +157,10 @@ export function CreateThreadDialog({ open, onClose }: CreateThreadDialogProps) {
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end gap-2 px-5 py-4 border-t border-slate-700">
+        <div className="flex justify-end gap-2 px-5 py-4 border-t border-zinc-700">
           <button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-slate-400 hover:text-slate-200 cursor-pointer transition-colors"
+            className="px-4 py-2 text-sm text-zinc-400 hover:text-zinc-200 cursor-pointer transition-colors"
           >
             Cancel
           </button>
@@ -170,7 +170,7 @@ export function CreateThreadDialog({ open, onClose }: CreateThreadDialogProps) {
             className={`px-4 py-2 text-sm rounded-lg transition-colors ${
               name.trim() && !creating
                 ? 'bg-orange-500 text-white hover:bg-orange-600 cursor-pointer'
-                : 'bg-slate-700 text-slate-500 cursor-default'
+                : 'bg-zinc-700 text-zinc-500 cursor-default'
             }`}
           >
             {creating ? 'Creating...' : 'Create Thread'}

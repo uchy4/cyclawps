@@ -8,8 +8,8 @@
 @source "../../**/*.{ts,tsx}";
 
 @keyframes slide-in-right {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
+  from { transform: tranzincX(100%); }
+  to { transform: tranzincX(0); }
 }
 
 .animate-slide-in {
@@ -17,8 +17,8 @@
 }
 
 @keyframes slide-out-right {
-  from { transform: translateX(0); }
-  to { transform: translateX(100%); }
+  from { transform: tranzincX(0); }
+  to { transform: tranzincX(100%); }
 }
 
 .animate-slide-out {

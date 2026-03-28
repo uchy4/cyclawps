@@ -34,7 +34,7 @@ export function MessageInput({ onSend, connected, targetAgent }: MessageInputPro
     : 'Disconnected...';
 
   return (
-    <div className="px-6 py-4 border-t border-slate-700">
+    <div className="px-6 py-4 border-t border-zinc-700">
       <form onSubmit={handleSubmit} className="flex gap-2">
         <textarea
           value={text}
@@ -43,7 +43,7 @@ export function MessageInput({ onSend, connected, targetAgent }: MessageInputPro
           placeholder={placeholder}
           disabled={!connected}
           rows={2}
-          className="flex-1 px-3.5 py-2.5 rounded-lg border border-slate-700 bg-slate-800 text-white text-sm resize-none font-[inherit]"
+          className="flex-1 px-3.5 py-2.5 rounded-lg border border-zinc-700 bg-zinc-800 text-white text-sm resize-none font-[inherit]"
         />
         <button
           type="submit"
@@ -51,7 +51,7 @@ export function MessageInput({ onSend, connected, targetAgent }: MessageInputPro
           className={`px-5 py-2.5 rounded-lg border-none text-sm font-medium self-end ${
             connected && text.trim()
               ? 'bg-orange-600 hover:bg-orange-700 text-white cursor-pointer'
-              : 'bg-slate-700 text-slate-500 cursor-default'
+              : 'bg-zinc-700 text-zinc-500 cursor-default'
           }`}
         >
           Send

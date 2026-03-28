@@ -5,7 +5,7 @@ interface ModelStepProps {
   onChange: (field: keyof CreateAgentConfigInput, value: unknown) => void;
 }
 
-const inputClass = 'w-full px-3 py-2 rounded-md border border-slate-700 bg-slate-950 text-slate-300 text-sm';
+const inputClass = 'w-full px-3 py-2 rounded-md border border-zinc-700 bg-zinc-950 text-zinc-300 text-sm';
 
 const MODELS = [
   { value: 'claude-sonnet-4-6', label: 'Claude Sonnet 4.6 (Balanced)' },
@@ -17,7 +17,7 @@ export function ModelStep({ data, onChange }: ModelStepProps) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <label className="block mb-1.5 text-[13px] text-slate-400">
+        <label className="block mb-1.5 text-[13px] text-zinc-400">
           Model
         </label>
         <select
@@ -31,7 +31,7 @@ export function ModelStep({ data, onChange }: ModelStepProps) {
         </select>
       </div>
       <div>
-        <label className="block mb-1.5 text-[13px] text-slate-400">
+        <label className="block mb-1.5 text-[13px] text-zinc-400">
           API Key Environment Variable
         </label>
         <input
@@ -41,12 +41,12 @@ export function ModelStep({ data, onChange }: ModelStepProps) {
           placeholder={`AGENT_${(data.role || 'ROLE').toUpperCase()}_API_KEY`}
           className={inputClass}
         />
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-zinc-500 mt-1">
           Name of the env var containing the Anthropic API key for this agent.
         </p>
       </div>
       <div>
-        <label className="block mb-1.5 text-[13px] text-slate-400">
+        <label className="block mb-1.5 text-[13px] text-zinc-400">
           Max Turns
         </label>
         <input
@@ -57,7 +57,7 @@ export function ModelStep({ data, onChange }: ModelStepProps) {
           max={100}
           className={`${inputClass} !w-[120px]`}
         />
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-zinc-500 mt-1">
           Maximum number of tool-use turns the agent can take per invocation.
         </p>
       </div>

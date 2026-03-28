@@ -4,7 +4,7 @@ import { useTaskLogs } from '../hooks/useTaskLogs.js';
 import { AgentBadge } from './AgentBadge.js';
 
 const STATUS_COLORS: Record<LogStatus, string> = {
-  info: 'bg-slate-400',
+  info: 'bg-zinc-400',
   success: 'bg-green-400',
   error: 'bg-red-400',
   warning: 'bg-yellow-400',
@@ -55,20 +55,20 @@ export function TaskLogs({ taskGuid }: TaskLogsProps) {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search logs..."
-          className="w-full px-3 py-2 rounded-lg border border-slate-700 bg-slate-800 text-white placeholder-slate-400 text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors"
+          className="w-full px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-800 text-white placeholder-zinc-400 text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors"
         />
       </div>
 
       {/* Log list */}
       <div className="flex-1 overflow-y-auto space-y-2">
         {loading && (
-          <div className="text-slate-400 text-sm animate-pulse py-4 text-center">
+          <div className="text-zinc-400 text-sm animate-pulse py-4 text-center">
             Loading logs...
           </div>
         )}
 
         {!loading && logs.length === 0 && (
-          <div className="text-slate-500 text-sm py-8 text-center">
+          <div className="text-zinc-500 text-sm py-8 text-center">
             {debouncedSearch ? 'No logs match your search.' : 'No logs for this task yet.'}
           </div>
         )}
@@ -103,10 +103,10 @@ function FormattedText({ text, className }: { text: string; className?: string }
           return (
             <pre
               key={i}
-              className="my-1.5 px-3 py-2 rounded-lg bg-slate-900 border border-slate-700 overflow-x-auto text-xs font-mono text-slate-300 whitespace-pre-wrap break-words"
+              className="my-1.5 px-3 py-2 rounded-lg bg-zinc-900 border border-zinc-700 overflow-x-auto text-xs font-mono text-zinc-300 whitespace-pre-wrap break-words"
             >
               {lang && (
-                <span className="block text-[10px] text-slate-500 mb-1 select-none">{lang}</span>
+                <span className="block text-[10px] text-zinc-500 mb-1 select-none">{lang}</span>
               )}
               <code>{code.replace(/^\n|\n$/g, '')}</code>
             </pre>
@@ -126,7 +126,7 @@ function InlineSegment({ text }: { text: string }) {
     <>
       {parts.map((part, i) =>
         part.startsWith('`') && part.endsWith('`') ? (
-          <code key={i} className="px-1 py-0.5 rounded bg-slate-700 text-orange-300 text-xs font-mono">
+          <code key={i} className="px-1 py-0.5 rounded bg-zinc-700 text-orange-300 text-xs font-mono">
             {part.slice(1, -1)}
           </code>
         ) : (
@@ -139,7 +139,7 @@ function InlineSegment({ text }: { text: string }) {
 
 function LogEntry({ log }: { log: TaskLog }) {
   return (
-    <div className="px-3 py-2.5 rounded-lg bg-slate-800/60 border border-slate-700/50">
+    <div className="px-3 py-2.5 rounded-lg bg-zinc-800/60 border border-zinc-700/50">
       <div className="flex items-center gap-2 mb-1">
         {/* Status dot */}
         <span
@@ -153,7 +153,7 @@ function LogEntry({ log }: { log: TaskLog }) {
         </span>
 
         {/* Timestamp */}
-        <span className="text-[10px] text-slate-500 shrink-0 tabular-nums">
+        <span className="text-[10px] text-zinc-500 shrink-0 tabular-nums">
           {formatTimestamp(log.createdAt)}
         </span>
       </div>
@@ -167,7 +167,7 @@ function LogEntry({ log }: { log: TaskLog }) {
 
       {/* Details */}
       {log.details && (
-        <div className="mt-1.5 text-xs text-slate-400">
+        <div className="mt-1.5 text-xs text-zinc-400">
           <FormattedText text={log.details} />
         </div>
       )}

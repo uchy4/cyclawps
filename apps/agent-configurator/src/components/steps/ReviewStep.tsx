@@ -9,7 +9,7 @@ export function ReviewStep({ data }: ReviewStepProps) {
     <div className="flex flex-col gap-4">
       <h2 className="text-lg font-semibold">Review Agent Configuration</h2>
 
-      <div className="bg-slate-900 rounded-lg p-4 border border-slate-700">
+      <div className="bg-zinc-900 rounded-lg p-4 border border-zinc-700">
         <Row label="Name" value={data.name} />
         <Row label="Display Name" value={data.displayName || '(none)'} />
         <Row label="Role" value={data.role} />
@@ -22,7 +22,7 @@ export function ReviewStep({ data }: ReviewStepProps) {
 
       <div>
         <h3 className="text-sm font-semibold mb-2">System Prompt</h3>
-        <pre className="p-3 rounded-md bg-slate-950 border border-slate-700 text-xs leading-[1.5] whitespace-pre-wrap max-h-[300px] overflow-auto">
+        <pre className="p-3 rounded-md bg-zinc-950 border border-zinc-700 text-xs leading-[1.5] whitespace-pre-wrap max-h-[300px] overflow-auto">
           {data.systemPrompt || '(empty)'}
         </pre>
       </div>
@@ -32,8 +32,8 @@ export function ReviewStep({ data }: ReviewStepProps) {
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
-    <div className="flex py-1.5 border-b border-slate-800">
-      <span className="w-[140px] text-[13px] text-slate-400">{label}</span>
+    <div className="flex py-1.5 border-b border-zinc-800">
+      <span className="w-[140px] text-[13px] text-zinc-400">{label}</span>
       <span className="text-[13px]">{value}</span>
     </div>
   );

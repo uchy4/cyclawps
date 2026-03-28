@@ -5,7 +5,7 @@ interface AgentBadgeProps {
 }
 
 export function AgentBadge({ role }: AgentBadgeProps) {
-  const color = ROLE_COLORS[role] || '#94a3b8'; // slate-400 fallback
+  const color = ROLE_COLORS[role] || '#94a3b8'; // zinc-400 fallback
   const displayName = formatRoleName(role);
 
   return (

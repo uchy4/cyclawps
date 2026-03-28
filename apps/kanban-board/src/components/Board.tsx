@@ -211,7 +211,7 @@ export function Board({ connected, initialTaskGuid }: { connected?: boolean; ini
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-48 text-slate-400">
+      <div className="flex items-center justify-center h-48 text-zinc-400">
         <span className="animate-pulse">Loading tasks…</span>
       </div>
     );
@@ -226,7 +226,7 @@ export function Board({ connected, initialTaskGuid }: { connected?: boolean; ini
         onDragEnd={handleDragEnd}
         onDragCancel={handleDragCancel}
       >
-        <div className="flex w-full h-full divide-x divide-slate-700/50">
+        <div className="flex w-full h-full divide-x divide-zinc-700/50">
           {COLUMNS.map((col) => (
             <div key={col.status} className="flex-1 min-w-[280px] first:pl-0 last:pr-0 flex flex-col h-full overflow-hidden">
               <Column
@@ -258,13 +258,13 @@ export function Board({ connected, initialTaskGuid }: { connected?: boolean; ini
         {editingTask ? (
           <>
             {/* Tab bar */}
-            <div className="flex border-b border-slate-700 mb-4">
+            <div className="flex border-b border-zinc-700 mb-4">
               <button
                 onClick={() => setActiveTab('edit')}
                 className={`px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
                   activeTab === 'edit'
                     ? 'text-white border-b-2 border-orange-500'
-                    : 'text-slate-400 hover:text-slate-200'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 Edit Task
@@ -274,7 +274,7 @@ export function Board({ connected, initialTaskGuid }: { connected?: boolean; ini
                 className={`px-4 py-2 text-sm font-medium transition-colors cursor-pointer ${
                   activeTab === 'logs'
                     ? 'text-white border-b-2 border-orange-500'
-                    : 'text-slate-400 hover:text-slate-200'
+                    : 'text-zinc-400 hover:text-zinc-200'
                 }`}
               >
                 Logs

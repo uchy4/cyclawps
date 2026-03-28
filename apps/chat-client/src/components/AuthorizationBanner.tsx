@@ -7,11 +7,11 @@ interface AuthorizationBannerProps {
 
 export function AuthorizationBanner({ auth, onAuthorize }: AuthorizationBannerProps) {
   return (
-    <div className="px-6 py-3 bg-stone-900 border-b border-yellow-500 flex items-center gap-3">
+    <div className="px-6 py-3 bg-zinc-900 border-b border-yellow-500 flex items-center gap-3">
       <span className="text-lg">&#9888;</span>
       <div className="flex-1">
         <div className="text-sm font-semibold text-yellow-500">Pipeline Authorization Required</div>
-        <div className="text-[13px] text-slate-400">{auth.description}</div>
+        <div className="text-[13px] text-zinc-400">{auth.description}</div>
       </div>
       <button
         onClick={() => onAuthorize(auth.taskId, auth.stageId, true)}

@@ -43,13 +43,13 @@ export function Column({ status, label, color, tasks, onClickTask, onCreateTask 
           <h2 className="text-lg font-semibold text-white">{label}</h2>
         </div>
         <div className="flex items-center gap-2">
-          <span className="text-sm text-slate-400 bg-slate-700/60 min-w-[28px] text-center py-0.5 px-2 rounded-full tabular-nums font-medium">
+          <span className="text-sm text-zinc-400 bg-zinc-700/60 min-w-[28px] text-center py-0.5 px-2 rounded-full tabular-nums font-medium">
             {tasks.length}
           </span>
           <button
             onClick={() => onCreateTask(status)}
             aria-label={`Add new task to ${label}`}
-            className="w-7 h-7 rounded-full flex items-center justify-center text-slate-400 hover:text-orange-400 hover:bg-orange-600/20 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors cursor-pointer"
+            className="w-7 h-7 rounded-full flex items-center justify-center text-zinc-400 hover:text-orange-400 hover:bg-orange-600/20 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors cursor-pointer"
           >
             <Plus aria-hidden="true" className="w-4 h-4" />
           </button>
@@ -71,7 +71,7 @@ export function Column({ status, label, color, tasks, onClickTask, onCreateTask 
           <button
             onClick={() => onCreateTask(status)}
             aria-label={`Add new task to ${label}`}
-            className="w-full min-h-[56px] border-2 border-dashed border-slate-600 rounded-2xl text-slate-400 hover:border-orange-500 hover:text-orange-400 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors flex items-center justify-center gap-2 cursor-pointer shrink-0"
+            className="w-full min-h-[56px] border-2 border-dashed border-zinc-600 rounded-2xl text-zinc-400 hover:border-orange-500 hover:text-orange-400 focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors flex items-center justify-center gap-2 cursor-pointer shrink-0"
           >
             <Plus aria-hidden="true" className="w-5 h-5" />
             <span className="text-base font-medium">New</span>

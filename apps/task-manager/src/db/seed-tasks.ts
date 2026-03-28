@@ -69,7 +69,7 @@ const SEED_TASKS: SeedTask[] = [
   },
   {
     title: 'Project kickoff planning',
-    description: 'Break down Q2 roadmap into epics and initial sprint tasks. Define milestones, deliverables, and team capacity allocation.',
+    description: 'Break down Q2 roadmap into epics and initial sprint tasks. Define milezincs, deliverables, and team capacity allocation.',
     status: 'done',
     assignedAgent: 'project_manager',
     priority: 3,

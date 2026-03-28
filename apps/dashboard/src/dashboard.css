@@ -39,7 +39,7 @@
 
   * {
     scrollbar-width: thin;
-    scrollbar-color: #475569 transparent;
+    scrollbar-color: #52525b transparent;
   }
 
   ::-webkit-scrollbar {
@@ -50,11 +50,11 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: #475569;
+    background: #52525b;
     border-radius: 3px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
+    background: #71717a;
   }
 }
 

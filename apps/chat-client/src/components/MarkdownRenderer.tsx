@@ -22,7 +22,7 @@ function CopyButton({ text }: { text: string }) {
   return (
     <button
       onClick={handleCopy}
-      className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+      className="text-zinc-400 hover:text-zinc-200 transition-colors cursor-pointer"
       title="Copy code"
     >
       {copied ? (
@@ -42,7 +42,7 @@ function PreviewToggle({ active, onClick }: { active: boolean; onClick: () => vo
   return (
     <button
       onClick={onClick}
-      className={`transition-colors cursor-pointer ${active ? 'text-orange-400 hover:text-orange-300' : 'text-slate-400 hover:text-slate-200'}`}
+      className={`transition-colors cursor-pointer ${active ? 'text-orange-400 hover:text-orange-300' : 'text-zinc-400 hover:text-zinc-200'}`}
       title={active ? 'Show source' : 'Preview markdown'}
     >
       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -76,9 +76,9 @@ function MdxPreview({ source }: { source: string }) {
 function MarkdownCodeBlock({ codeString, lang }: { codeString: string; lang: string }) {
   const [previewing, setPreviewing] = useState(false);
   return (
-    <div className="my-1.5 rounded-lg bg-slate-900 border border-slate-700 overflow-hidden text-sm">
-      <div className="flex items-center justify-between px-3 py-1 border-b border-slate-700 bg-slate-800/60">
-        <span className="text-xs text-slate-400 font-sans">{lang}</span>
+    <div className="my-1.5 rounded-lg bg-zinc-900 border border-zinc-700 overflow-hidden text-sm">
+      <div className="flex items-center justify-between px-3 py-1 border-b border-zinc-700 bg-zinc-800/60">
+        <span className="text-xs text-zinc-400 font-sans">{lang}</span>
         <div className="flex items-center gap-2">
           <PreviewToggle active={previewing} onClick={() => setPreviewing(!previewing)} />
           <CopyButton text={codeString} />
@@ -209,9 +209,9 @@ const components: Components = {
     }
 
     return (
-      <pre className="my-1.5 rounded-lg bg-slate-900 border border-slate-700 overflow-hidden text-sm font-mono" {...props}>
-        <div className="flex items-center justify-between px-3 py-1 border-b border-slate-700 bg-slate-800/60">
-          <span className="text-xs text-slate-400">{lang || 'code'}</span>
+      <pre className="my-1.5 rounded-lg bg-zinc-900 border border-zinc-700 overflow-hidden text-sm font-mono" {...props}>
+        <div className="flex items-center justify-between px-3 py-1 border-b border-zinc-700 bg-zinc-800/60">
+          <span className="text-xs text-zinc-400">{lang || 'code'}</span>
           <CopyButton text={codeString} />
         </div>
         {highlighted ? (
@@ -235,7 +235,7 @@ const components: Components = {
     // Inline code
     return (
       <code
-        className="rounded bg-slate-700/80 px-1.5 py-0.5 text-sm font-mono text-orange-300"
+        className="rounded bg-zinc-700/80 px-1.5 py-0.5 text-sm font-mono text-orange-300"
         {...props}
       >
         {children}
@@ -255,7 +255,7 @@ const components: Components = {
   ),
   details: ({ children, ...props }) => (
     <details
-      className="my-1.5 rounded-lg bg-slate-900/50 border border-slate-700 overflow-hidden"
+      className="my-1.5 rounded-lg bg-zinc-900/50 border border-zinc-700 overflow-hidden"
       {...props}
     >
       {children}
@@ -263,7 +263,7 @@ const components: Components = {
   ),
   summary: ({ children, ...props }) => (
     <summary
-      className="cursor-pointer px-3 py-1.5 text-sm font-medium text-slate-300 hover:text-orange-400"
+      className="cursor-pointer px-3 py-1.5 text-sm font-medium text-zinc-300 hover:text-orange-400"
       {...props}
     >
       {children}
@@ -277,7 +277,7 @@ const components: Components = {
   ),
   blockquote: ({ children, ...props }) => (
     <blockquote
-      className="border-l-2 border-orange-500/50 pl-3 my-1 text-slate-400 italic"
+      className="border-l-2 border-orange-500/50 pl-3 my-1 text-zinc-400 italic"
       {...props}
     >
       {children}
@@ -297,17 +297,17 @@ const components: Components = {
   ),
   table: ({ children, ...props }) => (
     <div className="overflow-x-auto my-1.5">
-      <table className="text-sm border-collapse border border-slate-700" {...props}>{children}</table>
+      <table className="text-sm border-collapse border border-zinc-700" {...props}>{children}</table>
     </div>
   ),
   th: ({ children, ...props }) => (
-    <th className="border border-slate-700 px-2 py-1 text-left bg-slate-800 font-medium" {...props}>{children}</th>
+    <th className="border border-zinc-700 px-2 py-1 text-left bg-zinc-800 font-medium" {...props}>{children}</th>
   ),
   td: ({ children, ...props }) => (
-    <td className="border border-slate-700 px-2 py-1" {...props}>{children}</td>
+    <td className="border border-zinc-700 px-2 py-1" {...props}>{children}</td>
   ),
   hr: (props) => (
-    <hr className="border-slate-700 my-2" {...props} />
+    <hr className="border-zinc-700 my-2" {...props} />
   ),
 };
 

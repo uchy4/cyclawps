@@ -153,7 +153,7 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
   const availableTasks = allTasks.filter((t) => !taggedTaskIds.has(t.id));
 
   return (
-    <div className="px-8 py-3 border-b border-slate-700 bg-slate-800/50">
+    <div className="px-8 py-3 border-b border-zinc-700 bg-zinc-800/50">
       {/* Thread name */}
       <div className="flex items-center gap-2 mb-2">
         {editingName ? (
@@ -183,21 +183,21 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
 
       {/* Participants */}
       <div className="flex items-center gap-1.5 flex-wrap mb-1.5">
-        <span className="text-[10px] text-slate-500 uppercase tracking-wider mr-1">Agents</span>
+        <span className="text-[10px] text-zinc-500 uppercase tracking-wider mr-1">Agents</span>
         {(thread.participants || []).map((p) => {
           const agentInfo = agents.find((a) => a.role === p.agentRole);
           const color = agentInfo?.accentColor || ROLE_COLORS[p.agentRole] || '#8b949e';
           return (
             <span
               key={p.agentRole}
-              className="group inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-slate-600"
+              className="group inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full border border-zinc-600"
               style={{ borderColor: color + '40', color }}
             >
               <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
               {agentInfo?.displayName || formatRoleName(p.agentRole)}
               <button
                 onClick={() => removeParticipant(p.agentRole)}
-                className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-400 transition-opacity cursor-pointer"
+                className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-400 transition-opacity cursor-pointer"
               >
                 <X className="w-3 h-3" />
               </button>
@@ -207,20 +207,20 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
         <div className="relative">
           <button
             onClick={() => { setShowAgentPicker(!showAgentPicker); setShowTaskPicker(false); }}
-            className="w-5 h-5 flex items-center justify-center rounded-full border border-slate-600 text-slate-500 hover:text-orange-400 hover:border-orange-400 transition-colors cursor-pointer"
+            className="w-5 h-5 flex items-center justify-center rounded-full border border-zinc-600 text-zinc-500 hover:text-orange-400 hover:border-orange-400 transition-colors cursor-pointer"
           >
             <Plus className="w-3 h-3" />
           </button>
           {showAgentPicker && (
-            <div className="absolute top-7 left-0 z-10 bg-slate-800 border border-slate-700 rounded-lg py-1 shadow-lg min-w-[180px] max-h-48 overflow-y-auto">
+            <div className="absolute top-7 left-0 z-10 bg-zinc-800 border border-zinc-700 rounded-lg py-1 shadow-lg min-w-[180px] max-h-48 overflow-y-auto">
               {availableAgents.length === 0 && (
-                <div className="px-3 py-2 text-xs text-slate-500">No more agents</div>
+                <div className="px-3 py-2 text-xs text-zinc-500">No more agents</div>
               )}
               {availableAgents.map((a) => (
                 <button
                   key={a.role}
                   onClick={() => addParticipant(a.role)}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left text-slate-300 hover:bg-slate-700/50 cursor-pointer transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left text-zinc-300 hover:bg-zinc-700/50 cursor-pointer transition-colors"
                 >
                   <span
                     className="w-1.5 h-1.5 rounded-full shrink-0"
@@ -236,18 +236,18 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
 
       {/* Task tags */}
       <div className="flex items-center gap-1.5 flex-wrap">
-        <span className="text-[10px] text-slate-500 uppercase tracking-wider mr-1">Tasks</span>
+        <span className="text-[10px] text-zinc-500 uppercase tracking-wider mr-1">Tasks</span>
         {(thread.taskTags || []).map((tag) => (
           <span
             key={tag.taskId}
-            className="group inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-300"
+            className="group inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-zinc-700/50 text-zinc-300"
           >
-            <Tag className="w-3 h-3 text-slate-500" />
+            <Tag className="w-3 h-3 text-zinc-500" />
             <span className="text-orange-400/80 font-mono">{tag.taskGuid}</span>
             <span className="truncate max-w-[120px]">{tag.taskTitle}</span>
             <button
               onClick={() => removeTaskTag(tag.taskId)}
-              className="opacity-0 group-hover:opacity-100 text-slate-400 hover:text-red-400 transition-opacity cursor-pointer"
+              className="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-400 transition-opacity cursor-pointer"
             >
               <X className="w-3 h-3" />
             </button>
@@ -256,20 +256,20 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
         <div className="relative">
           <button
             onClick={() => { setShowTaskPicker(!showTaskPicker); setShowAgentPicker(false); }}
-            className="w-5 h-5 flex items-center justify-center rounded-full border border-slate-600 text-slate-500 hover:text-orange-400 hover:border-orange-400 transition-colors cursor-pointer"
+            className="w-5 h-5 flex items-center justify-center rounded-full border border-zinc-600 text-zinc-500 hover:text-orange-400 hover:border-orange-400 transition-colors cursor-pointer"
           >
             <Plus className="w-3 h-3" />
           </button>
           {showTaskPicker && (
-            <div className="absolute top-7 left-0 z-10 bg-slate-800 border border-slate-700 rounded-lg py-1 shadow-lg min-w-[220px] max-h-48 overflow-y-auto">
+            <div className="absolute top-7 left-0 z-10 bg-zinc-800 border border-zinc-700 rounded-lg py-1 shadow-lg min-w-[220px] max-h-48 overflow-y-auto">
               {availableTasks.length === 0 && (
-                <div className="px-3 py-2 text-xs text-slate-500">No more tasks</div>
+                <div className="px-3 py-2 text-xs text-zinc-500">No more tasks</div>
               )}
               {availableTasks.map((t) => (
                 <button
                   key={t.id}
                   onClick={() => addTaskTag(t.id)}
-                  className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left text-slate-300 hover:bg-slate-700/50 cursor-pointer transition-colors"
+                  className="w-full flex items-center gap-2 px-3 py-1.5 text-sm text-left text-zinc-300 hover:bg-zinc-700/50 cursor-pointer transition-colors"
                 >
                   <span className="text-orange-400/80 font-mono text-xs">{t.guid}</span>
                   <span className="truncate">{t.title}</span>

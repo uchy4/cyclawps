@@ -13,7 +13,7 @@ export function AgentCard({ agent, onClick }: AgentCardProps) {
   return (
     <button
       onClick={onClick}
-      className="w-full text-left bg-slate-800 rounded-xl p-6 border border-slate-700 hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/5 transition-colors cursor-pointer group focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none"
+      className="w-full text-left bg-zinc-800 rounded-xl p-6 border border-zinc-700 hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/5 transition-colors cursor-pointer group focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none"
     >
       {/* Avatar + Name */}
       <div className="flex items-start gap-4 mb-4">
@@ -27,29 +27,29 @@ export function AgentCard({ agent, onClick }: AgentCardProps) {
           <h3 className="text-base font-semibold text-white truncate group-hover:text-orange-400 transition-colors">
             {agent.displayName || agent.name}
           </h3>
-          <p className="text-xs text-slate-400">{agent.role}</p>
+          <p className="text-xs text-zinc-400">{agent.role}</p>
         </div>
         {agent.isSeeded && (
-          <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-slate-700 text-slate-400 shrink-0">
+          <span className="ml-auto text-[10px] px-2 py-0.5 rounded-full bg-zinc-700 text-zinc-400 shrink-0">
             Default
           </span>
         )}
       </div>
 
       {/* Description */}
-      <p className="text-sm text-slate-400 leading-relaxed line-clamp-2 mb-4">
+      <p className="text-sm text-zinc-400 leading-relaxed line-clamp-2 mb-4">
         {agent.description || 'No description'}
       </p>
 
       {/* Meta badges */}
       <div className="flex items-center gap-2 flex-wrap">
-        <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-700/50 text-orange-400">
+        <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-700/50 text-orange-400">
           {agent.model.replace('claude-', '').replace('-4-6', '').replace('-4-5', '')}
         </span>
-        <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400">
+        <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-700/50 text-zinc-400">
           {agent.maxTurns} turns
         </span>
-        <span className="text-[11px] px-2 py-0.5 rounded-full bg-slate-700/50 text-slate-400">
+        <span className="text-[11px] px-2 py-0.5 rounded-full bg-zinc-700/50 text-zinc-400">
           {agent.tools.length} tools
         </span>
       </div>

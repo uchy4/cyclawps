@@ -30,7 +30,7 @@ export function ToolsStep({ data, onChange }: ToolsStepProps) {
 
   return (
     <div>
-      <p className="text-[13px] text-slate-400 mb-4">
+      <p className="text-[13px] text-zinc-400 mb-4">
         Select the tools this agent is allowed to use.
       </p>
       <div className="flex flex-col gap-2">
@@ -40,7 +40,7 @@ export function ToolsStep({ data, onChange }: ToolsStepProps) {
             <label
               key={tool}
               className={`flex items-center gap-3 px-3.5 py-2.5 rounded-md border cursor-pointer ${
-                isSelected ? 'border-orange-500 bg-orange-600/5' : 'border-slate-700 bg-transparent'
+                isSelected ? 'border-orange-500 bg-orange-600/5' : 'border-zinc-700 bg-transparent'
               }`}
             >
               <input
@@ -51,7 +51,7 @@ export function ToolsStep({ data, onChange }: ToolsStepProps) {
               />
               <div>
                 <div className="text-sm font-medium">{tool}</div>
-                <div className="text-xs text-slate-400">{TOOL_DESCRIPTIONS[tool] || ''}</div>
+                <div className="text-xs text-zinc-400">{TOOL_DESCRIPTIONS[tool] || ''}</div>
               </div>
             </label>
           );

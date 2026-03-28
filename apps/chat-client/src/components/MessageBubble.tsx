@@ -47,7 +47,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
 
   if (isSystem) {
     return (
-      <div className="py-1 text-xs text-slate-400 text-center">
+      <div className="py-1 text-xs text-zinc-400 text-center">
         {message.content}
       </div>
     );
@@ -104,11 +104,11 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
               {displayName}
             </span>
             {message.taskId && (
-              <span className="text-[11px] text-slate-500">
+              <span className="text-[11px] text-zinc-500">
                 on task {message.taskId.slice(0, 8)}
               </span>
             )}
-            <span className="text-[10px] text-slate-500">
+            <span className="text-[10px] text-zinc-500">
               {new Date(message.createdAt).toLocaleTimeString()}
             </span>
           </div>
@@ -120,18 +120,18 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
             className={`px-3.5 py-2.5 text-base leading-normal break-words ${
               isConsecutive
                 ? isUser
-                  ? 'bg-slate-700/50 rounded-lg'
-                  : 'bg-slate-800/50 border border-slate-700 rounded-lg'
+                  ? 'bg-zinc-700/50 rounded-lg'
+                  : 'bg-zinc-800/50 border border-zinc-700 rounded-lg'
                 : isUser
-                  ? 'bg-slate-700/50 rounded-xl'
-                  : 'bg-slate-800/50 border border-slate-700 rounded-xl'
+                  ? 'bg-zinc-700/50 rounded-xl'
+                  : 'bg-zinc-800/50 border border-zinc-700 rounded-xl'
             }`}
             style={borderStyle}
           >
             {/* Reply context — rounded border, constrained width, expandable */}
             {replyTarget && (
-              <div className="mb-2 max-w-full rounded-lg border border-slate-600 bg-slate-800/50 px-2.5 py-1.5 font-normal" style={{ width: 'fit-content', maxWidth: '100%' }}>
-                <div className="flex items-center gap-1.5 text-[11px] text-slate-500 min-w-0">
+              <div className="mb-2 max-w-full rounded-lg border border-zinc-600 bg-zinc-800/50 px-2.5 py-1.5 font-normal" style={{ width: 'fit-content', maxWidth: '100%' }}>
+                <div className="flex items-center gap-1.5 text-[11px] text-zinc-500 min-w-0">
                   <button
                     type="button"
                     onClick={() => setReplyExpanded((v) => !v)}
@@ -150,7 +150,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                     <button
                       type="button"
                       onClick={() => onScrollToMessage(message.inReplyTo!)}
-                      className="shrink-0 p-0.5 rounded text-slate-500 hover:text-orange-400 cursor-pointer transition-colors"
+                      className="shrink-0 p-0.5 rounded text-zinc-500 hover:text-orange-400 cursor-pointer transition-colors"
                       title="Jump to original message"
                     >
                       <ArrowUpRight className="w-3 h-3" />
@@ -158,7 +158,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                   )}
                 </div>
                 {replyExpanded && (
-                  <div className="mt-1.5 text-[11px] text-slate-400 whitespace-pre-wrap">
+                  <div className="mt-1.5 text-[11px] text-zinc-400 whitespace-pre-wrap">
                     {replyTarget.content}
                   </div>
                 )}
@@ -170,7 +170,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                 <textarea
                   value={editText}
                   onChange={(e) => setEditText(e.target.value)}
-                  className="bg-slate-900 border border-slate-600 rounded-lg px-2 py-1.5 text-sm text-slate-200 resize-none focus:outline-none focus:border-orange-500/50"
+                  className="bg-zinc-900 border border-zinc-600 rounded-lg px-2 py-1.5 text-sm text-zinc-200 resize-none focus:outline-none focus:border-orange-500/50"
                   rows={2}
                   autoFocus
                   onKeyDown={(e) => {
@@ -180,7 +180,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                 />
                 <div className="flex gap-1.5 text-[11px]">
                   <button onClick={handleSaveEdit} className="text-orange-400 hover:text-orange-300 cursor-pointer">Save</button>
-                  <button onClick={handleCancelEdit} className="text-slate-500 hover:text-slate-300 cursor-pointer">Cancel</button>
+                  <button onClick={handleCancelEdit} className="text-zinc-500 hover:text-zinc-300 cursor-pointer">Cancel</button>
                 </div>
               </div>
             ) : (
@@ -200,7 +200,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                   >
                     <Paperclip className="w-3 h-3" />
                     {att.name}
-                    <span className="text-slate-500">({(att.size / 1024).toFixed(1)}KB)</span>
+                    <span className="text-zinc-500">({(att.size / 1024).toFixed(1)}KB)</span>
                   </a>
                 ))}
               </div>
@@ -233,11 +233,11 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                 {/* Inline hover actions next to reactions — hidden when editing */}
                 {!editing && (
                   <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                    <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-0.5 py-0.5 shadow-lg h-7">
+                    <div className="flex items-center bg-zinc-800 border border-zinc-700 rounded-lg px-0.5 py-0.5 shadow-lg h-7">
                       {onReply && (
                         <button
                           onClick={() => onReply(message)}
-                          className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                          className="px-1 py-0.5 rounded text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700/50 cursor-pointer"
                           title="Reply"
                         >
                           <Reply className="w-3.5 h-3.5" />
@@ -246,7 +246,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                       {onReact && (
                         <button
                           onClick={() => setShowEmojis(!showEmojis)}
-                          className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                          className="px-1 py-0.5 rounded text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700/50 cursor-pointer"
                           title="React"
                         >
                           <SmilePlus className="w-3.5 h-3.5" />
@@ -255,7 +255,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                       {isUser && onEdit && (
                         <button
                           onClick={handleStartEdit}
-                          className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                          className="px-1 py-0.5 rounded text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700/50 cursor-pointer"
                           title="Edit"
                         >
                           <Pencil className="w-3.5 h-3.5" />
@@ -264,7 +264,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                       {isUser && onDelete && (
                         <button
                           onClick={() => onDelete(message.id)}
-                          className="px-1 py-0.5 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+                          className="px-1 py-0.5 rounded text-zinc-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
                           title="Delete"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
@@ -280,7 +280,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
           {/* Emoji picker — below bubble, hidden when editing */}
           {showEmojis && onReact && !editing && (
             <div ref={emojiRef} className={`absolute left-4 flex items-center gap-1 z-20 ${hasReactions ? '-bottom-1' : '-bottom-3'}`}>
-              <div className="flex items-center gap-0.5 bg-slate-800 border border-slate-700 rounded-lg px-1 py-0.5 shadow-lg">
+              <div className="flex items-center gap-0.5 bg-zinc-800 border border-zinc-700 rounded-lg px-1 py-0.5 shadow-lg">
                 {QUICK_EMOJIS.map((emoji) => (
                   <button
                     key={emoji}
@@ -297,11 +297,11 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
           {/* Reply + React + Edit actions pill — hover only, floating when NO reactions, hidden when editing */}
           {!hasReactions && !editing && (
             <div className="absolute left-4 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity -bottom-3">
-              <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-0.5 py-0.5 shadow-lg h-7">
+              <div className="flex items-center bg-zinc-800 border border-zinc-700 rounded-lg px-0.5 py-0.5 shadow-lg h-7">
                 {onReply && (
                   <button
                     onClick={() => onReply(message)}
-                    className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                    className="px-1 py-0.5 rounded text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700/50 cursor-pointer"
                     title="Reply"
                   >
                     <Reply className="w-3.5 h-3.5" />
@@ -310,7 +310,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                 {onReact && (
                   <button
                     onClick={() => setShowEmojis(!showEmojis)}
-                    className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                    className="px-1 py-0.5 rounded text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700/50 cursor-pointer"
                     title="React"
                   >
                     <SmilePlus className="w-3.5 h-3.5" />
@@ -319,7 +319,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                 {isUser && onEdit && (
                   <button
                     onClick={handleStartEdit}
-                    className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                    className="px-1 py-0.5 rounded text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700/50 cursor-pointer"
                     title="Edit"
                   >
                     <Pencil className="w-3.5 h-3.5" />
@@ -328,7 +328,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                 {isUser && onDelete && (
                   <button
                     onClick={() => onDelete(message.id)}
-                    className="px-1 py-0.5 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+                    className="px-1 py-0.5 rounded text-zinc-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
                     title="Delete"
                   >
                     <Trash2 className="w-3.5 h-3.5" />

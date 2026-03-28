@@ -13,14 +13,14 @@ export function Sidebar({ collapsed }: SidebarProps) {
   const showLabels = !collapsed;
 
   return (
-    <nav className={`${collapsed ? 'w-14' : 'w-14 lg:w-60'} bg-slate-800 border-r border-slate-700 flex flex-col shrink-0 transition-all duration-200`}>
+    <nav className={`${collapsed ? 'w-14' : 'w-14 lg:w-60'} bg-zinc-800 border-r border-zinc-700 flex flex-col shrink-0 transition-all duration-200`}>
       <div className="flex flex-col gap-0.5 p-2 flex-1 overflow-y-auto">
         {/* Tasks */}
         <NavLink
           to="/kanban"
           className={({ isActive }) =>
             `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              isActive ? 'bg-slate-700/50 text-orange-400 font-medium' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
+              isActive ? 'bg-zinc-700/50 text-orange-400 font-medium' : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800/50'
             }`
           }
         >
@@ -33,7 +33,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
           to="/chat"
           className={({ isActive }) =>
             `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              isActive ? 'bg-slate-700/50 text-orange-400 font-medium' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
+              isActive ? 'bg-zinc-700/50 text-orange-400 font-medium' : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800/50'
             }`
           }
         >
@@ -46,7 +46,7 @@ export function Sidebar({ collapsed }: SidebarProps) {
           to="/configurator"
           className={({ isActive }) =>
             `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              isActive ? 'bg-slate-700/50 text-orange-400 font-medium' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-800/50'
+              isActive ? 'bg-zinc-700/50 text-orange-400 font-medium' : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800/50'
             }`
           }
         >
@@ -54,8 +54,8 @@ export function Sidebar({ collapsed }: SidebarProps) {
           {showLabels && <span className="hidden lg:inline">Agents</span>}
         </NavLink>
       </div>
-      <div className="p-3 border-t border-slate-700">
-        {showLabels && <div className="text-[10px] text-slate-500 hidden lg:block">Cyclawps v0.1</div>}
+      <div className="p-3 border-t border-zinc-700">
+        {showLabels && <div className="text-[10px] text-zinc-500 hidden lg:block">Cyclawps v0.1</div>}
       </div>
     </nav>
   );
@@ -187,10 +187,10 @@ export function ChatSubSidebar() {
 
   return (
     <>
-      <div className="w-56 bg-slate-800 border-r border-slate-700 flex flex-col shrink-0">
+      <div className="w-56 bg-zinc-800 border-r border-zinc-700 flex flex-col shrink-0">
         {/* Header */}
-        <div className="p-3 border-b border-slate-700">
-          <span className="text-xs font-semibold text-slate-400 uppercase tracking-wider">Chat</span>
+        <div className="p-3 border-b border-zinc-700">
+          <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Chat</span>
         </div>
 
         <div className="flex flex-col gap-0.5 p-2 flex-1 overflow-y-auto">
@@ -200,18 +200,18 @@ export function ChatSubSidebar() {
             end
             className={({ isActive }) =>
               `flex items-center gap-2 px-3 py-2 rounded-md text-base transition-colors ${
-                isActive ? 'text-orange-400 font-medium bg-slate-700/50' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/30'
+                isActive ? 'text-orange-400 font-medium bg-zinc-700/50' : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-700/30'
               }`
             }
           >
-            <Hash className="w-3.5 h-3.5 shrink-0 text-slate-500" />
+            <Hash className="w-3.5 h-3.5 shrink-0 text-zinc-500" />
             Global
           </NavLink>
 
           {/* Agents Section */}
           <button
             onClick={() => setAgentsOpen(!agentsOpen)}
-            className="flex items-center gap-1.5 px-3 py-1.5 mt-2 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-400 cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 mt-2 text-xs font-semibold text-zinc-500 uppercase tracking-wider hover:text-zinc-400 cursor-pointer"
           >
             {agentsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
             <Users className="w-4 h-4" />
@@ -230,7 +230,7 @@ export function ChatSubSidebar() {
                     to={`/chat/agent/${agent.role}`}
                     className={({ isActive }) =>
                       `flex items-center gap-2 px-3 py-1.5 rounded-md text-base transition-colors ${
-                        isActive ? 'text-orange-400 font-medium bg-slate-700/50' : 'text-slate-300 hover:text-slate-200 hover:bg-slate-700/30'
+                        isActive ? 'text-orange-400 font-medium bg-zinc-700/50' : 'text-zinc-300 hover:text-zinc-200 hover:bg-zinc-700/30'
                       }`
                     }
                   >
@@ -241,7 +241,7 @@ export function ChatSubSidebar() {
                     {archives.length > 0 && (
                       <button
                         onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpandedAgentArchives(prev => { const next = new Set(prev); if (next.has(agent.role)) next.delete(agent.role); else next.add(agent.role); return next; }); }}
-                        className="p-1 rounded text-slate-600 hover:text-slate-400 cursor-pointer"
+                        className="p-1 rounded text-zinc-600 hover:text-zinc-400 cursor-pointer"
                         title={`${archives.length} archived chat${archives.length !== 1 ? 's' : ''}`}
                       >
                         <span className="text-[9px]">{archives.length}</span>
@@ -249,7 +249,7 @@ export function ChatSubSidebar() {
                     )}
                     <button
                       onClick={(e) => handleAgentArchive(agent.role, e)}
-                      className="p-1 rounded text-slate-600 hover:text-slate-400 cursor-pointer"
+                      className="p-1 rounded text-zinc-600 hover:text-zinc-400 cursor-pointer"
                       title="Archive chat"
                     >
                       <Archive className="w-3 h-3" />
@@ -262,13 +262,13 @@ export function ChatSubSidebar() {
                     {archives.map(archive => (
                       <div
                         key={archive.id}
-                        className="group/archive flex items-center gap-1.5 px-2 py-1 rounded text-[11px] text-slate-500 hover:text-slate-300 hover:bg-slate-700/30 transition-colors"
+                        className="group/archive flex items-center gap-1.5 px-2 py-1 rounded text-[11px] text-zinc-500 hover:text-zinc-300 hover:bg-zinc-700/30 transition-colors"
                       >
                         <Archive className="w-2.5 h-2.5 shrink-0" />
                         <span className="truncate flex-1">{archive.name}</span>
                         <button
                           onClick={() => handleAgentRestore(agent.role, archive.id)}
-                          className="p-0.5 rounded text-slate-600 hover:text-green-400 opacity-0 group-hover/archive:opacity-100 transition-opacity cursor-pointer"
+                          className="p-0.5 rounded text-zinc-600 hover:text-green-400 opacity-0 group-hover/archive:opacity-100 transition-opacity cursor-pointer"
                           title="Restore this chat"
                         >
                           <RotateCcw className="w-2.5 h-2.5" />
@@ -285,7 +285,7 @@ export function ChatSubSidebar() {
           <div className="flex items-center mt-2">
             <button
               onClick={() => setThreadsOpen(!threadsOpen)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-slate-500 uppercase tracking-wider hover:text-slate-400 cursor-pointer flex-1"
+              className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-zinc-500 uppercase tracking-wider hover:text-zinc-400 cursor-pointer flex-1"
             >
               {threadsOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
               <MessageSquare className="w-4 h-4" />
@@ -293,7 +293,7 @@ export function ChatSubSidebar() {
             </button>
             <button
               onClick={() => setShowCreateDialog(true)}
-              className="p-1 rounded text-slate-500 hover:text-orange-400 transition-colors cursor-pointer mr-2"
+              className="p-1 rounded text-zinc-500 hover:text-orange-400 transition-colors cursor-pointer mr-2"
               title="New thread"
             >
               <Plus className="w-3.5 h-3.5" />
@@ -313,7 +313,7 @@ export function ChatSubSidebar() {
                   to={`/chat/thread/${thread.id}`}
                   className={({ isActive }) =>
                     `flex flex-col gap-0.5 px-3 py-1.5 rounded-md text-base transition-colors ${
-                      isActive ? 'text-orange-400 font-medium bg-slate-700/50' : 'text-slate-400 hover:text-slate-300 hover:bg-slate-700/30'
+                      isActive ? 'text-orange-400 font-medium bg-zinc-700/50' : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-700/30'
                     }`
                   }
                 >
@@ -328,7 +328,7 @@ export function ChatSubSidebar() {
                         />
                       ))}
                       {participantColors.length === 0 && (
-                        <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-slate-500" />
+                        <span className="w-1.5 h-1.5 rounded-full shrink-0 bg-zinc-500" />
                       )}
                     </div>
                     <span className="truncate">{thread.name}</span>
@@ -336,21 +336,21 @@ export function ChatSubSidebar() {
                   {/* Task tag badges */}
                   {thread.taskTags.length > 0 && (
                     <div className="flex items-center gap-1 pl-3.5">
-                      <Tag className="w-2.5 h-2.5 text-slate-600" />
+                      <Tag className="w-2.5 h-2.5 text-zinc-600" />
                       {thread.taskTags.slice(0, 2).map(tag => (
-                        <span key={tag.taskId} className="text-[9px] text-slate-500 font-mono">
+                        <span key={tag.taskId} className="text-[9px] text-zinc-500 font-mono">
                           {tag.taskGuid}
                         </span>
                       ))}
                       {thread.taskTags.length > 2 && (
-                        <span className="text-[9px] text-slate-600">+{thread.taskTags.length - 2}</span>
+                        <span className="text-[9px] text-zinc-600">+{thread.taskTags.length - 2}</span>
                       )}
                     </div>
                   )}
                 </NavLink>
                 <button
                   onClick={(e) => toggleArchive(thread.id, e)}
-                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-600 hover:text-slate-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded text-zinc-600 hover:text-zinc-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                   title="Archive thread"
                 >
                   <Archive className="w-3 h-3" />
@@ -364,7 +364,7 @@ export function ChatSubSidebar() {
             <>
               <button
                 onClick={() => setShowArchived(!showArchived)}
-                className="flex items-center gap-1.5 px-3 py-1.5 mt-2 text-[10px] font-semibold text-slate-600 uppercase tracking-wider hover:text-slate-400 cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 mt-2 text-[10px] font-semibold text-zinc-600 uppercase tracking-wider hover:text-zinc-400 cursor-pointer"
               >
                 {showArchived ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
                 <Archive className="w-3 h-3" />
@@ -376,7 +376,7 @@ export function ChatSubSidebar() {
                     to={`/chat/thread/${thread.id}`}
                     className={({ isActive }) =>
                       `flex flex-col gap-0.5 px-3 py-1.5 rounded-md text-base transition-colors opacity-50 ${
-                        isActive ? 'text-orange-400 font-medium bg-slate-700/50' : 'text-slate-500 hover:text-slate-400 hover:bg-slate-700/30'
+                        isActive ? 'text-orange-400 font-medium bg-zinc-700/50' : 'text-zinc-500 hover:text-zinc-400 hover:bg-zinc-700/30'
                       }`
                     }
                   >
@@ -384,7 +384,7 @@ export function ChatSubSidebar() {
                   </NavLink>
                   <button
                     onClick={(e) => toggleArchive(thread.id, e)}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded text-slate-600 hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-1 rounded text-zinc-600 hover:text-orange-400 opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
                     title="Unarchive thread"
                   >
                     <Archive className="w-3 h-3" />
@@ -407,7 +407,7 @@ export function ChatSubSidebar() {
           <>
             <button
               onClick={() => setArchiveModalOpen(false)}
-              className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
+              className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-200 rounded-lg hover:bg-zinc-700 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -420,7 +420,7 @@ export function ChatSubSidebar() {
           </>
         }
       >
-        <p className="text-sm text-slate-400 mb-3">
+        <p className="text-sm text-zinc-400 mb-3">
           This will save the current conversation and clear the chat.
         </p>
         <input
@@ -430,7 +430,7 @@ export function ChatSubSidebar() {
           onKeyDown={(e) => { if (e.key === 'Enter') confirmSidebarArchive(); }}
           placeholder="Archive name..."
           autoFocus
-          className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-orange-500/50 transition-colors"
+          className="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-orange-500/50 transition-colors"
         />
       </Modal>
     </>

@@ -82,7 +82,7 @@ export function AgentWizard({ editRole, onClose }: AgentWizardProps) {
             className={`flex-1 p-2.5 text-center text-[13px] cursor-pointer border-b-2 ${
               i === step ? 'font-semibold text-blue-400 border-blue-400' :
               i < step ? 'text-green-400 border-green-400' :
-              'text-slate-500 border-slate-700'
+              'text-zinc-500 border-zinc-700'
             }`}
           >
             {name}
@@ -101,7 +101,7 @@ export function AgentWizard({ editRole, onClose }: AgentWizardProps) {
       <div className="flex justify-between mt-6">
         <button
           onClick={onClose}
-          className="px-4 py-2 rounded-md border border-slate-700 bg-transparent text-slate-300 cursor-pointer"
+          className="px-4 py-2 rounded-md border border-zinc-700 bg-transparent text-zinc-300 cursor-pointer"
         >
           Cancel
         </button>
@@ -109,7 +109,7 @@ export function AgentWizard({ editRole, onClose }: AgentWizardProps) {
           {step > 0 && (
             <button
               onClick={() => setStep((s) => s - 1)}
-              className="px-4 py-2 rounded-md border border-slate-700 bg-transparent text-slate-300 cursor-pointer"
+              className="px-4 py-2 rounded-md border border-zinc-700 bg-transparent text-zinc-300 cursor-pointer"
             >
               Back
             </button>
@@ -126,7 +126,7 @@ export function AgentWizard({ editRole, onClose }: AgentWizardProps) {
               onClick={handleSave}
               disabled={saving}
               className={`px-4 py-2 rounded-md border-none text-white ${
-                saving ? 'bg-slate-800 cursor-default' : 'bg-orange-600 cursor-pointer'
+                saving ? 'bg-zinc-800 cursor-default' : 'bg-orange-600 cursor-pointer'
               }`}
             >
               {saving ? 'Saving...' : editRole ? 'Update Agent' : 'Create Agent'}

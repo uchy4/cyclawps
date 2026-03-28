@@ -344,12 +344,12 @@ export function ChatView() {
       <div className="flex-1 overflow-auto px-8 py-4">
       <div className="max-w-4xl mx-auto w-full">
         {loading && (
-          <div className="text-slate-400 animate-pulse">
+          <div className="text-zinc-400 animate-pulse">
             Loading messages...
           </div>
         )}
         {!loading && messages.length === 0 && (
-          <div className="flex items-center justify-center h-full text-slate-500 text-sm">
+          <div className="flex items-center justify-center h-full text-zinc-500 text-sm">
             No messages yet. Start a conversation.
           </div>
         )}
@@ -409,18 +409,18 @@ export function ChatView() {
       {replyTo && (
         <div className="px-8 pt-2">
           <div className="max-w-4xl mx-auto w-full">
-          <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
+          <div className="flex items-center gap-2 text-xs text-zinc-400 bg-zinc-800 border border-zinc-700 rounded-lg px-3 py-2">
             <Reply className="w-3.5 h-3.5 shrink-0" />
             <span className="truncate flex-1">
               Replying to{' '}
-              <span className="text-slate-300 font-medium">
+              <span className="text-zinc-300 font-medium">
                 {replyTo.senderType === 'user' ? 'Me' : replyTo.senderName}
               </span>
               : {replyTo.content}
             </span>
             <button
               onClick={() => setReplyTo(null)}
-              className="text-slate-500 hover:text-slate-300 cursor-pointer"
+              className="text-zinc-500 hover:text-zinc-300 cursor-pointer"
             >
               <X className="w-3.5 h-3.5" />
             </button>
@@ -437,13 +437,13 @@ export function ChatView() {
             {attachments.map((att, i) => (
               <div
                 key={i}
-                className="flex items-center gap-1.5 text-xs bg-slate-800 border border-slate-700 rounded-lg px-2.5 py-1.5"
+                className="flex items-center gap-1.5 text-xs bg-zinc-800 border border-zinc-700 rounded-lg px-2.5 py-1.5"
               >
-                <Paperclip className="w-3 h-3 text-slate-400" />
-                <span className="text-slate-300">{att.name}</span>
+                <Paperclip className="w-3 h-3 text-zinc-400" />
+                <span className="text-zinc-300">{att.name}</span>
                 <button
                   onClick={() => removeAttachment(i)}
-                  className="text-slate-500 hover:text-slate-300 cursor-pointer"
+                  className="text-zinc-500 hover:text-zinc-300 cursor-pointer"
                 >
                   <X className="w-3 h-3" />
                 </button>
@@ -486,15 +486,15 @@ export function ChatView() {
       <div className="px-8 pb-8 pt-2">
       <div className="max-w-4xl mx-auto w-full">
         <div
-          className={`flex items-center gap-3 rounded-xl border bg-slate-800 px-4 py-3 transition-colors ${
-            whisper.isRecording ? 'border-orange-500/50' : 'border-slate-700'
+          className={`flex items-center gap-3 rounded-xl border bg-zinc-800 px-4 py-3 transition-colors ${
+            whisper.isRecording ? 'border-orange-500/50' : 'border-zinc-700'
           }`}
         >
           {whisper.isRecording && (
             <button
               type="button"
               onClick={whisper.cancelRecording}
-              className="shrink-0 p-1.5 rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/20 cursor-pointer transition-colors"
+              className="shrink-0 p-1.5 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/20 cursor-pointer transition-colors"
               aria-label="Cancel recording"
             >
               <X className="w-5 h-5" />
@@ -569,7 +569,7 @@ export function ChatView() {
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
                 disabled={!connected}
-                className="shrink-0 p-1 rounded-lg text-slate-400 hover:text-orange-400 hover:bg-orange-600/20 cursor-pointer transition-colors"
+                className="shrink-0 p-1 rounded-lg text-zinc-400 hover:text-orange-400 hover:bg-orange-600/20 cursor-pointer transition-colors"
                 aria-label="Attach file"
               >
                 <Paperclip className="w-5 h-5" />
@@ -581,7 +581,7 @@ export function ChatView() {
                   type="button"
                   onClick={() => { setPickerType(pickerType === 'agent' ? null : 'agent'); setPickerQuery(''); setPickerIndex(0); }}
                   disabled={!connected}
-                  className={`shrink-0 p-1 rounded-lg cursor-pointer transition-colors ${pickerType === 'agent' ? 'text-orange-400 bg-orange-600/20' : 'text-slate-400 hover:text-orange-400 hover:bg-orange-600/20'}`}
+                  className={`shrink-0 p-1 rounded-lg cursor-pointer transition-colors ${pickerType === 'agent' ? 'text-orange-400 bg-orange-600/20' : 'text-zinc-400 hover:text-orange-400 hover:bg-orange-600/20'}`}
                   aria-label="Mention agent"
                 >
                   <AtSign className="w-5 h-5" />
@@ -594,7 +594,7 @@ export function ChatView() {
                   type="button"
                   onClick={() => { setPickerType(pickerType === 'task' ? null : 'task'); setPickerQuery(''); setPickerIndex(0); }}
                   disabled={!connected}
-                  className={`shrink-0 p-1 rounded-lg cursor-pointer transition-colors ${pickerType === 'task' ? 'text-orange-400 bg-orange-600/20' : 'text-slate-400 hover:text-orange-400 hover:bg-orange-600/20'}`}
+                  className={`shrink-0 p-1 rounded-lg cursor-pointer transition-colors ${pickerType === 'task' ? 'text-orange-400 bg-orange-600/20' : 'text-zinc-400 hover:text-orange-400 hover:bg-orange-600/20'}`}
                   aria-label="Tag task"
                 >
                   <Hash className="w-5 h-5" />
@@ -609,8 +609,8 @@ export function ChatView() {
                   disabled={!connected || whisper.isTranscribing}
                   className={`shrink-0 p-1 rounded-lg transition-colors ${
                     whisper.isTranscribing
-                      ? 'text-slate-600 cursor-default'
-                      : 'text-slate-400 hover:text-orange-400 hover:bg-orange-600/20 cursor-pointer'
+                      ? 'text-zinc-600 cursor-default'
+                      : 'text-zinc-400 hover:text-orange-400 hover:bg-orange-600/20 cursor-pointer'
                   }`}
                   aria-label="Start voice input"
                 >
@@ -640,7 +640,7 @@ export function ChatView() {
                 className={`shrink-0 p-1 rounded-lg transition-colors ${
                   connected
                     ? 'text-orange-400 hover:bg-orange-600/20 cursor-pointer'
-                    : 'text-slate-600 cursor-default'
+                    : 'text-zinc-600 cursor-default'
                 }`}
                 aria-label="Send message"
               >
@@ -661,7 +661,7 @@ export function ChatView() {
           <>
             <button
               onClick={() => setArchiveModalOpen(false)}
-              className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
+              className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-200 rounded-lg hover:bg-zinc-700 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -674,7 +674,7 @@ export function ChatView() {
           </>
         }
       >
-        <p className="text-sm text-slate-400 mb-3">
+        <p className="text-sm text-zinc-400 mb-3">
           This will save the current conversation and clear the chat.
         </p>
         <input
@@ -684,7 +684,7 @@ export function ChatView() {
           onKeyDown={(e) => { if (e.key === 'Enter') confirmArchive(); }}
           placeholder="Archive name..."
           autoFocus
-          className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-orange-500/50 transition-colors"
+          className="w-full bg-zinc-900 border border-zinc-600 rounded-lg px-3 py-2 text-sm text-white placeholder-zinc-500 outline-none focus:border-orange-500/50 transition-colors"
         />
       </Modal>
 
@@ -697,7 +697,7 @@ export function ChatView() {
           <>
             <button
               onClick={() => { setDeleteModalOpen(false); setDeleteTargetId(null); }}
-              className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
+              className="px-3 py-1.5 text-sm text-zinc-400 hover:text-zinc-200 rounded-lg hover:bg-zinc-700 transition-colors cursor-pointer"
             >
               Cancel
             </button>
@@ -714,7 +714,7 @@ export function ChatView() {
           </>
         }
       >
-        <p className="text-sm text-slate-400">
+        <p className="text-sm text-zinc-400">
           Are you sure you want to delete this message? This cannot be undone.
         </p>
       </Modal>
@@ -772,20 +772,20 @@ function PickerPopover({ type, agents, tasks, mentionColors, query, selectedInde
 
   return (
     <div className="px-8">
-      <div className="bg-slate-800 border border-slate-700 rounded-lg shadow-lg overflow-hidden">
-        <div className="px-3 py-2 border-b border-slate-700">
+      <div className="bg-zinc-800 border border-zinc-700 rounded-lg shadow-lg overflow-hidden">
+        <div className="px-3 py-2 border-b border-zinc-700">
           <input
             ref={inputRef}
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={type === 'agent' ? 'Search agents...' : 'Search tasks...'}
-            className="w-full bg-transparent text-sm text-white placeholder-slate-500 outline-none"
+            className="w-full bg-transparent text-sm text-white placeholder-zinc-500 outline-none"
           />
         </div>
         <div className="max-h-48 overflow-y-auto">
           {items.length === 0 && (
-            <div className="px-3 py-2 text-xs text-slate-500">No results</div>
+            <div className="px-3 py-2 text-xs text-zinc-500">No results</div>
           )}
           {type === 'agent'
             ? (items as AgentInfo[]).map((agent, i) => {
@@ -795,14 +795,14 @@ function PickerPopover({ type, agents, tasks, mentionColors, query, selectedInde
                     key={agent.role}
                     onClick={() => onSelect(agent)}
                     className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left cursor-pointer transition-colors ${
-                      i === selectedIndex ? 'bg-slate-700' : 'hover:bg-slate-700/50'
+                      i === selectedIndex ? 'bg-zinc-700' : 'hover:bg-zinc-700/50'
                     }`}
                   >
                     <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
                     <span className="font-mono text-xs" style={{ color }}>
                       @{(agent.displayName || agent.name).replace(/\s+/g, '_')}
                     </span>
-                    <span className="text-slate-500">{agent.role}</span>
+                    <span className="text-zinc-500">{agent.role}</span>
                   </button>
                 );
               })
@@ -811,11 +811,11 @@ function PickerPopover({ type, agents, tasks, mentionColors, query, selectedInde
                   key={task.id}
                   onClick={() => onSelect(task)}
                   className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left cursor-pointer transition-colors ${
-                    i === selectedIndex ? 'bg-slate-700' : 'hover:bg-slate-700/50'
+                    i === selectedIndex ? 'bg-zinc-700' : 'hover:bg-zinc-700/50'
                   }`}
                 >
                   <span className="text-orange-400 font-mono text-xs">#{task.guid}</span>
-                  <span className="text-slate-400 truncate">{task.title}</span>
+                  <span className="text-zinc-400 truncate">{task.title}</span>
                 </button>
               ))}
         </div>

@@ -41,7 +41,7 @@ When creating new agents in the cyclawps, the user wants agentic help from Claud
 - Fixed overlay (same pattern as `Drawer.tsx` — `fixed inset-0 z-50`, black/50 backdrop, Escape to close)
 - Centered modal panel, `max-w-5xl`
 - Two side-by-side columns: "Before" (left) and "After" (right, orange left border accent)
-- Both display prompt text in `font-mono text-[13px] bg-slate-950` panels
+- Both display prompt text in `font-mono text-[13px] bg-zinc-950` panels
 - Footer: "Accept" (orange primary button) and "Dismiss" (outline secondary)
 - Props: `original`, `refined`, `onAccept(refined)`, `onDismiss()`
 
@@ -62,7 +62,7 @@ When creating new agents in the cyclawps, the user wants agentic help from Claud
 **Modify:** `apps/agent-configurator/src/components/AgentEditor.tsx`
 
 - Wrap textarea in `<div className="relative">`
-- When textarea is **empty**: large centered mic button (w-16 h-16 circle, slate-800 bg)
+- When textarea is **empty**: large centered mic button (w-16 h-16 circle, zinc-800 bg)
 - When textarea has **content**: small mic button at bottom-right corner (w-8 h-8)
 - Uses `Mic` icon from `lucide-react`
 - On click: show a toast "Voice transcription coming soon" that auto-dismisses after 2.5s

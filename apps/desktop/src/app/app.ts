@@ -59,7 +59,7 @@ export default class App {
       width: width,
       height: height,
       show: false,
-      backgroundColor: '#0d1117',
+      backgroundColor: '#18181b',
       titleBarStyle: 'hiddenInset',
       trafficLightPosition: { x: 16, y: 16 },
       webPreferences: {

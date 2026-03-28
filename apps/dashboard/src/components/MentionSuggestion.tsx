@@ -58,7 +58,7 @@ export function AgentSuggestionList({
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg py-1 shadow-lg max-h-48 overflow-y-auto min-w-[180px]">
+    <div className="bg-zinc-800 border border-zinc-700 rounded-lg py-1 shadow-lg max-h-48 overflow-y-auto min-w-[180px]">
       {items.map((agent, i) => {
         const color = agent.accentColor || ROLE_COLORS[agent.role] || '#8b949e';
         return (
@@ -66,14 +66,14 @@ export function AgentSuggestionList({
             key={agent.role}
             onClick={() => command({ id: agent.role, label: (agent.displayName || agent.name).replace(/\s+/g, '_') })}
             className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left cursor-pointer transition-colors ${
-              i === selectedIndex ? 'bg-slate-700' : 'hover:bg-slate-700/50'
+              i === selectedIndex ? 'bg-zinc-700' : 'hover:bg-zinc-700/50'
             }`}
           >
             <span className="w-2 h-2 rounded-full shrink-0" style={{ backgroundColor: color }} />
             <span className="font-mono text-xs" style={{ color }}>
               @{(agent.displayName || agent.name).replace(/\s+/g, '_')}
             </span>
-            <span className="text-slate-500">{agent.role}</span>
+            <span className="text-zinc-500">{agent.role}</span>
           </button>
         );
       })}
@@ -134,17 +134,17 @@ export function TaskSuggestionList({
   if (items.length === 0) return null;
 
   return (
-    <div className="bg-slate-800 border border-slate-700 rounded-lg py-1 shadow-lg max-h-48 overflow-y-auto min-w-[220px]">
+    <div className="bg-zinc-800 border border-zinc-700 rounded-lg py-1 shadow-lg max-h-48 overflow-y-auto min-w-[220px]">
       {items.map((task, i) => (
         <button
           key={task.id}
           onClick={() => command({ id: task.id, label: task.guid })}
           className={`w-full flex items-center gap-2 px-3 py-2 text-sm text-left cursor-pointer transition-colors ${
-            i === selectedIndex ? 'bg-slate-700' : 'hover:bg-slate-700/50'
+            i === selectedIndex ? 'bg-zinc-700' : 'hover:bg-zinc-700/50'
           }`}
         >
           <span className="text-orange-400 font-mono text-xs">#{task.guid}</span>
-          <span className="text-slate-400 truncate">{task.title}</span>
+          <span className="text-zinc-400 truncate">{task.title}</span>
         </button>
       ))}
     </div>
@@ -192,7 +192,7 @@ export function createSuggestionRenderer(
     if (!rect) return;
     el.style.left = `${rect.left}px`;
     el.style.top = `${rect.top - 8}px`;
-    el.style.transform = 'translateY(-100%)';
+    el.style.transform = 'tranzincY(-100%)';
   }
 
   async function renderComponent(props: SuggestionProps) {

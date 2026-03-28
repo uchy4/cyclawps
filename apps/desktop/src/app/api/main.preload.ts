@@ -17,12 +17,12 @@ window.addEventListener('DOMContentLoaded', () => {
   style.textContent = `
     #electron-titlebar {
       height: 2.5rem;
-      background: #0f172a;
+      background: #18181b;
       -webkit-app-region: drag;
       position: relative;
       z-index: 9999;
       flex-shrink: 0;
-      border-bottom: 1px solid #1e293b;
+      border-bottom: 1px solid #27272a;
     }
 
     /* Make the root flex container vertical so the bar sits on top */

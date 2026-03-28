@@ -6,13 +6,13 @@ interface BasicInfoStepProps {
   isEdit: boolean;
 }
 
-const inputClass = 'w-full px-3 py-2 rounded-md border border-slate-700 bg-slate-950 text-slate-300 text-sm';
+const inputClass = 'w-full px-3 py-2 rounded-md border border-zinc-700 bg-zinc-950 text-zinc-300 text-sm';
 
 export function BasicInfoStep({ data, onChange, isEdit }: BasicInfoStepProps) {
   return (
     <div className="flex flex-col gap-4">
       <div>
-        <label className="block mb-1.5 text-[13px] text-slate-400">
+        <label className="block mb-1.5 text-[13px] text-zinc-400">
           Agent Name *
         </label>
         <input
@@ -24,7 +24,7 @@ export function BasicInfoStep({ data, onChange, isEdit }: BasicInfoStepProps) {
         />
       </div>
       <div>
-        <label className="block mb-1.5 text-[13px] text-slate-400">
+        <label className="block mb-1.5 text-[13px] text-zinc-400">
           Display Name / Persona (Optional)
         </label>
         <input
@@ -32,11 +32,11 @@ export function BasicInfoStep({ data, onChange, isEdit }: BasicInfoStepProps) {
           value={data.displayName || ''}
           onChange={(e) => onChange('displayName', e.target.value)}
           placeholder="e.g., Pam, Archie, Devin..."
-          className="w-full px-3 py-2 border border-slate-700 rounded-lg bg-slate-800 text-white placeholder-slate-400 text-sm"
+          className="w-full px-3 py-2 border border-zinc-700 rounded-lg bg-zinc-800 text-white placeholder-zinc-400 text-sm"
         />
       </div>
       <div>
-        <label className="block mb-1.5 text-[13px] text-slate-400">
+        <label className="block mb-1.5 text-[13px] text-zinc-400">
           Role Identifier * {isEdit && <span className="text-red-400">(cannot change)</span>}
         </label>
         <input
@@ -49,7 +49,7 @@ export function BasicInfoStep({ data, onChange, isEdit }: BasicInfoStepProps) {
         />
       </div>
       <div>
-        <label className="block mb-1.5 text-[13px] text-slate-400">
+        <label className="block mb-1.5 text-[13px] text-zinc-400">
           Description
         </label>
         <textarea
