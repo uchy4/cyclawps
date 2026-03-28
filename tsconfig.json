@@ -2,5 +2,30 @@
   "extends": "./tsconfig.base.json",
   "compileOnSave": false,
   "files": [],
-  "references": []
+  "references": [
+    {
+      "path": "./apps/agent-configurator"
+    },
+    {
+      "path": "./apps/kanban-board"
+    },
+    {
+      "path": "./apps/task-manager"
+    },
+    {
+      "path": "./apps/chat-client"
+    },
+    {
+      "path": "./apps/dashboard"
+    },
+    {
+      "path": "./apps/desktop"
+    },
+    {
+      "path": "./libs/agents"
+    },
+    {
+      "path": "./libs/shared"
+    }
+  ]
 }

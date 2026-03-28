@@ -41,16 +41,23 @@ export function useMessages(threadId?: string, agentRole?: string) {
     if (!socket) return;
 
     const onMessage = ({ message }: { message: Message }) => {
+      const msgExtra = message as Record<string, unknown>;
+      const msgThreadId = msgExtra['threadId'] as string | null | undefined;
+      const msgAgentRole = msgExtra['agentRole'] as string | null | undefined;
+
       if (threadId) {
-        if (message.threadId === threadId) {
+        // Thread view: only show messages belonging to this thread
+        if (msgThreadId === threadId) {
           setMessages((prev) => [...prev, message]);
         }
       } else if (agentRole) {
-        // Agent channel: show all messages (server already filtered by agent_role)
-        setMessages((prev) => [...prev, message]);
+        // Agent DM channel: only show messages for this agent role
+        if (msgAgentRole === agentRole || message.senderName === agentRole) {
+          setMessages((prev) => [...prev, message]);
+        }
       } else {
         // Global chat: only show messages with no thread and no agent_role
-        if (!message.threadId && !(message as Record<string, unknown>)['agentRole']) {
+        if (!msgThreadId && !msgAgentRole) {
           setMessages((prev) => [...prev, message]);
         }
       }

@@ -4,10 +4,21 @@ import type { Server } from 'socket.io';
 import type { ServerToClientEvents, ClientToServerEvents, AgentRunStatus } from '@app/shared';
 import { loadAgentConfig, invokeAgent } from '@app/agents';
 import { writeTaskLog } from '../db/log-writer.js';
+import { buildChatPrompt, buildTaskPrompt } from './prompt-builder.js';
+import { parseDirectives, stripDirectives, executeDirectives } from './agent-directives.js';
+
+// Callback for triggering handoffs via the dispatcher
+export type HandoffCallback = (
+  targetRole: string,
+  threadId: string | null,
+  agentRoleChannel: string | null,
+  depth: number
+) => void;
 
 export class AgentRunner {
   private db: Database.Database;
   private io: Server<ClientToServerEvents, ServerToClientEvents>;
+  private onHandoff: HandoffCallback | null = null;
 
   constructor(
     db: Database.Database,
@@ -15,6 +26,13 @@ export class AgentRunner {
   ) {
     this.db = db;
     this.io = io;
+  }
+
+  /**
+   * Set the handoff callback (called by the dispatcher to wire itself in).
+   */
+  setHandoffCallback(cb: HandoffCallback): void {
+    this.onHandoff = cb;
   }
 
   /**
@@ -42,23 +60,8 @@ export class AgentRunner {
       'SELECT * FROM agent_runs WHERE task_id = ? AND status = ? ORDER BY finished_at ASC'
     ).all(taskId, 'completed') as Array<Record<string, unknown>>;
 
-    // Build the prompt with task context
-    const contextParts: string[] = [
-      `## Task: ${task['title']}`,
-      `**Description:** ${task['description'] || 'No description'}`,
-      `**Status:** ${task['status']}`,
-      `**Priority:** ${task['priority']}`,
-    ];
-
-    if (priorRuns.length > 0) {
-      contextParts.push('\n## Previous Agent Outputs:');
-      for (const run of priorRuns) {
-        contextParts.push(`\n### ${run['agent_role']} output:`);
-        contextParts.push(run['result'] as string || '(no output)');
-      }
-    }
-
-    const prompt = contextParts.join('\n');
+    // Build the prompt with task context + conversation history + directives
+    const prompt = buildTaskPrompt(this.db, config, task, priorRuns);
 
     // Create agent_run record
     const runId = uuid();
@@ -85,7 +88,7 @@ export class AgentRunner {
     const result = await invokeAgent({
       config,
       prompt,
-      onStream: (chunk) => {
+      onStream: (chunk: string) => {
         this.io.emit('agent:streaming', { role: agentRole, taskId, chunk });
       },
       onStatusChange: (status: AgentRunStatus) => {
@@ -118,25 +121,156 @@ export class AgentRunner {
       });
     }
 
-    // Insert agent's output as a message
+    // Process directives from agent output
+    const directives = result.success ? parseDirectives(result.output) : null;
+    const cleanOutput = directives ? stripDirectives(result.output) : result.output;
+
+    if (directives) {
+      executeDirectives(directives, {
+        db: this.db,
+        io: this.io,
+        agentRole,
+        onHandoff: this.onHandoff || undefined,
+      });
+    }
+
+    // Insert agent's output as a message (clean, without directives)
     const messageId = uuid();
     this.db.prepare(
       `INSERT INTO messages (id, sender_type, sender_name, content, task_id, created_at)
        VALUES (?, 'agent', ?, ?, ?, ?)`
-    ).run(messageId, agentRole, result.output, taskId, finishedAt);
+    ).run(messageId, agentRole, cleanOutput, taskId, finishedAt);
 
     this.io.emit('message:new', {
       message: {
         id: messageId,
         senderType: 'agent',
         senderName: agentRole,
-        content: result.output,
+        content: cleanOutput,
         taskId,
         inReplyTo: null,
         createdAt: finishedAt,
       },
     });
 
-    return result;
+    return { ...result, output: cleanOutput };
+  }
+
+  /**
+   * Run an agent in response to a chat message.
+   * Builds prompt from conversation history rather than a single task.
+   */
+  async runForChat(
+    agentRole: string,
+    threadId: string | null,
+    agentRoleChannel: string | null,
+    handoffDepth = 0
+  ): Promise<{ success: boolean; output: string }> {
+    const config = loadAgentConfig(this.db, agentRole);
+    if (!config) {
+      return { success: false, output: `Agent config not found for role: ${agentRole}` };
+    }
+
+    // Load thread metadata if applicable
+    let threadName: string | null = null;
+    let threadParticipants: string[] = [];
+    if (threadId) {
+      const thread = this.db
+        .prepare('SELECT name FROM threads WHERE id = ?')
+        .get(threadId) as { name: string } | undefined;
+      threadName = thread?.name || null;
+
+      const participants = this.db
+        .prepare('SELECT agent_role FROM thread_participants WHERE thread_id = ?')
+        .all(threadId) as Array<{ agent_role: string }>;
+      threadParticipants = participants.map((p) => p.agent_role);
+    }
+
+    // Build chat-context prompt
+    const prompt = buildChatPrompt(this.db, config, {
+      threadId,
+      agentRole: agentRoleChannel,
+      threadName,
+      threadParticipants,
+    });
+
+    // Create agent_run record (no task_id for pure chat)
+    const runId = uuid();
+    const now = Date.now();
+    this.db.prepare(
+      `INSERT INTO agent_runs (id, agent_role, task_id, status, prompt, created_at, started_at)
+       VALUES (?, ?, NULL, 'running', ?, ?, ?)`
+    ).run(runId, agentRole, prompt, now, now);
+
+    // Emit status (no taskId for chat invocations)
+    this.io.emit('agent:status', { role: agentRole, status: 'running' });
+
+    // Invoke the agent
+    const result = await invokeAgent({
+      config,
+      prompt,
+      onStream: (chunk: string) => {
+        this.io.emit('agent:streaming', { role: agentRole, taskId: '', chunk });
+      },
+      onStatusChange: (status: AgentRunStatus) => {
+        this.io.emit('agent:status', { role: agentRole, status });
+      },
+    });
+
+    // Update agent_run record
+    const finishedAt = Date.now();
+    this.db.prepare(
+      `UPDATE agent_runs SET status = ?, result = ?, finished_at = ?, tokens_used = ? WHERE id = ?`
+    ).run(
+      result.success ? 'completed' : 'failed',
+      result.output,
+      finishedAt,
+      result.tokensUsed || null,
+      runId
+    );
+
+    // Process directives
+    const directives = result.success ? parseDirectives(result.output) : null;
+    const cleanOutput = directives ? stripDirectives(result.output) : result.output;
+
+    if (directives) {
+      executeDirectives(directives, {
+        db: this.db,
+        io: this.io,
+        agentRole,
+        threadId,
+        agentRoleChannel,
+        handoffDepth,
+        onHandoff: this.onHandoff || undefined,
+      });
+    }
+
+    // Insert agent's response as a message in the same context
+    const messageId = uuid();
+    this.db.prepare(
+      `INSERT INTO messages (id, sender_type, sender_name, content, thread_id, agent_role, created_at)
+       VALUES (?, 'agent', ?, ?, ?, ?, ?)`
+    ).run(messageId, agentRole, cleanOutput, threadId || null, agentRoleChannel || null, finishedAt);
+
+    this.io.emit('message:new', {
+      message: {
+        id: messageId,
+        senderType: 'agent' as const,
+        senderName: agentRole,
+        content: cleanOutput,
+        taskId: null,
+        threadId: threadId || null,
+        agentRole: agentRoleChannel || null,
+        inReplyTo: null,
+        attachments: [],
+        reactions: [],
+        createdAt: finishedAt,
+      } as Record<string, unknown>,
+    });
+
+    // Emit completed status
+    this.io.emit('agent:status', { role: agentRole, status: 'completed' });
+
+    return { ...result, output: cleanOutput };
   }
 }

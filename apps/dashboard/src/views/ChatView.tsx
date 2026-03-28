@@ -15,6 +15,8 @@ import { ROLE_COLORS, Modal } from '@app/shared';
 import { ThreadHeader } from '../components/ThreadHeader.js';
 import { AgentChatHeader } from '../components/AgentChatHeader.js';
 import { ChatEditor, type ChatEditorHandle } from '../components/ChatEditor.js';
+import { AgentTypingIndicator } from '../components/AgentTypingIndicator.js';
+import { useAgentStatus } from '../hooks/useAgentStatus.js';
 
 interface AgentInfo {
   role: string;
@@ -67,6 +69,7 @@ export function ChatView() {
   const [archiveName, setArchiveName] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+  const { activities: agentActivities } = useAgentStatus();
 
   // Fetch archives for agent chat
   useEffect(() => {
@@ -413,6 +416,12 @@ export function ChatView() {
             </div>
           );
         })}
+        <AgentTypingIndicator
+          activities={agentActivities}
+          filterRoles={agentRole ? [agentRole] : thread?.participants?.map(p => p.agentRole)}
+          agentNames={Object.fromEntries(agents.map(a => [a.role, a.displayName || a.name]))}
+          agentColors={Object.fromEntries(agents.filter(a => a.accentColor).map(a => [a.role, a.accentColor!]))}
+        />
         <div ref={messagesEndRef} />
       </div>
       </div>

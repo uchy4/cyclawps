@@ -20,11 +20,15 @@ export interface ServerToClientEvents {
   'thread:participant_removed': (data: { threadId: string; agentRole: string }) => void;
   'thread:task_tagged': (data: { threadId: string; tag: ThreadTaskTag }) => void;
   'thread:task_untagged': (data: { threadId: string; taskId: string }) => void;
+  'message:edited': (data: { messageId: string; content: string }) => void;
+  'message:deleted': (data: { messageId: string }) => void;
 }
 
 // Client -> Server events
 export interface ClientToServerEvents {
   'message:send': (data: { content: string; taskId?: string; threadId?: string; inReplyTo?: string; attachments?: Attachment[]; agentRole?: string }) => void;
   'message:react': (data: { messageId: string; emoji: string }) => void;
+  'message:edit': (data: { messageId: string; content: string }) => void;
+  'message:delete': (data: { messageId: string }) => void;
   'pipeline:authorize': (data: { taskId: string; stageId: string; approved: boolean }) => void;
 }

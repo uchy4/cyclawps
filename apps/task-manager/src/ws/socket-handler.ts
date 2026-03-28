@@ -2,10 +2,12 @@ import type { Server } from 'socket.io';
 import { v4 as uuid } from 'uuid';
 import type Database from 'better-sqlite3';
 import type { ServerToClientEvents, ClientToServerEvents, Reaction } from '@app/shared';
+import type { AgentDispatcher } from '../orchestrator/agent-dispatcher.js';
 
 export function registerSocketHandlers(
   io: Server<ClientToServerEvents, ServerToClientEvents>,
-  db: Database.Database
+  db: Database.Database,
+  dispatcher?: AgentDispatcher
 ): void {
   io.on('connection', (socket) => {
     console.log(`Client connected: ${socket.id}`);
@@ -33,11 +35,23 @@ export function registerSocketHandlers(
         threadId: data.threadId || null,
         inReplyTo: data.inReplyTo || null,
         attachments,
+        agentRole: data.agentRole || null,
         reactions: [] as Reaction[],
         createdAt: now,
       };
 
       io.emit('message:new', { message });
+
+      // Dispatch to agents if applicable
+      dispatcher?.onMessage({
+        id,
+        senderType: 'user',
+        senderName: 'user',
+        content,
+        taskId: data.taskId || null,
+        threadId: data.threadId || null,
+        agentRole: data.agentRole || null,
+      });
     });
 
     // Handle message deletes

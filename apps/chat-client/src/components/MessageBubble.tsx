@@ -138,7 +138,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                     className="flex items-center gap-1.5 cursor-pointer min-w-0 overflow-hidden"
                   >
                     <Reply className="w-3 h-3 rotate-180 shrink-0" />
-                    <span className="font-medium shrink-0" style={{ color: ROLE_COLORS[replyTarget.senderName] || '#8b949e' }}>
+                    <span className="font-medium shrink-0" style={{ color: mentionColors?.[replyTarget.senderName] || ROLE_COLORS[replyTarget.senderName] || '#8b949e' }}>
                       {replyName}
                     </span>
                     {!replyExpanded && (
@@ -213,7 +213,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                   // Use the first reactor's color for the pill
                   const reactorColor = reactors[0] === 'user'
                     ? '#f97316'
-                    : (ROLE_COLORS[reactors[0]] || '#8b949e');
+                    : (mentionColors?.[reactors[0]] || ROLE_COLORS[reactors[0]] || '#8b949e');
                   return (
                     <button
                       key={emoji}

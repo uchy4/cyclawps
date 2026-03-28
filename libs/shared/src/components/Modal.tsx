@@ -31,6 +31,7 @@ export function Modal({ open, onClose, title, children, footer }: ModalProps) {
       const timer = setTimeout(() => setVisible(false), 150);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [open, visible]);
 
   if (!visible) return null;

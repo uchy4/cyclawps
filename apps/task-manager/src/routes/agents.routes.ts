@@ -100,14 +100,19 @@ export function registerAgentRoutes(fastify: FastifyInstance): void {
     return { message: 'Reset to defaults' };
   });
 
-  // Invoke an agent manually
+  // Invoke an agent manually for a task
   fastify.post('/api/agents/:role/invoke', async (request, reply) => {
     const { role } = request.params as { role: string };
     const { taskId } = request.body as { taskId: string };
     const agent = db.prepare('SELECT * FROM agent_configs WHERE role = ?').get(role);
     if (!agent) return reply.code(404).send({ error: 'Agent not found' });
+    if (!taskId) return reply.code(400).send({ error: 'taskId is required' });
 
-    // TODO: Wire to agent-runner in Phase 5
-    return { message: 'Agent invocation queued', role, taskId };
+    // Run asynchronously — don't block the response
+    fastify.agentRunner.run(role, taskId).catch((err) => {
+      console.error(`Agent invocation failed for ${role}:`, err);
+    });
+
+    return { message: 'Agent invocation started', role, taskId };
   });
 }

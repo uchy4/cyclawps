@@ -10,6 +10,8 @@ import { registerMessageRoutes } from './routes/messages.routes.js';
 import { registerPipelineRoutes } from './routes/pipeline.routes.js';
 import { registerAgentRoutes } from './routes/agents.routes.js';
 import { registerSocketHandlers } from './ws/socket-handler.js';
+import { AgentRunner } from './orchestrator/agent-runner.js';
+import { AgentDispatcher } from './orchestrator/agent-dispatcher.js';
 import { registerTranscribeRoutes } from './routes/transcribe.routes.js';
 import { registerLogRoutes } from './routes/logs.routes.js';
 import { registerThreadRoutes } from './routes/threads.routes.js';
@@ -59,6 +61,10 @@ async function main() {
 
   fastify.decorate('io', io);
 
+  // Set up agent runner (must decorate before listen)
+  const agentRunner = new AgentRunner(db, io);
+  fastify.decorate('agentRunner', agentRunner);
+
   // Register routes
   registerTaskRoutes(fastify);
   registerMessageRoutes(fastify);
@@ -92,8 +98,14 @@ async function main() {
   // Attach socket.io to the underlying http server
   io.attach(fastify.server);
 
+  // Set up dispatcher and wire handoffs
+  const dispatcher = new AgentDispatcher(db, io, agentRunner);
+  agentRunner.setHandoffCallback((targetRole, threadId, agentRoleChannel, depth) => {
+    dispatcher.invokeAgent(targetRole, threadId, agentRoleChannel, depth);
+  });
+
   // Register WebSocket handlers
-  registerSocketHandlers(io, db);
+  registerSocketHandlers(io, db, dispatcher);
 
   // Graceful shutdown
   const shutdown = async (signal: string) => {

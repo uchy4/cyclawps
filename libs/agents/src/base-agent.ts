@@ -55,6 +55,10 @@ export async function invokeAgent(options: InvokeAgentOptions): Promise<AgentRes
         model: model as 'opus' | 'sonnet' | 'haiku',
         maxTurns,
         cwd: cwd || process.cwd(),
+        env: {
+          ...process.env,
+          ANTHROPIC_API_KEY: apiKey,
+        },
       },
     })) {
       // Extract text content from assistant messages
