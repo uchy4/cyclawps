@@ -13,6 +13,7 @@ import { registerSocketHandlers } from './ws/socket-handler.js';
 import { registerTranscribeRoutes } from './routes/transcribe.routes.js';
 import { registerLogRoutes } from './routes/logs.routes.js';
 import { registerThreadRoutes } from './routes/threads.routes.js';
+import { registerArchiveRoutes } from './routes/archives.routes.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { seedAgents } from '@app/agents';
@@ -66,6 +67,7 @@ async function main() {
   registerAgentRoutes(fastify);
   registerTranscribeRoutes(fastify);
   registerLogRoutes(fastify);
+  registerArchiveRoutes(fastify);
 
   // Serve static dashboard files when running inside Electron (production)
   if (process.env['STATIC_DIR']) {

@@ -118,5 +118,18 @@ export function runMigrations(db: Database.Database): void {
     console.log(`Migrated ${taskRows.length} task-based threads to generic threads.`);
   }
 
+  // Add agent_chat_archives table
+  if (!tableExists(db, 'agent_chat_archives')) {
+    console.log('Creating agent_chat_archives table...');
+    db.exec(`CREATE TABLE IF NOT EXISTS agent_chat_archives (
+      id TEXT PRIMARY KEY,
+      agent_role TEXT NOT NULL,
+      name TEXT NOT NULL,
+      messages TEXT NOT NULL DEFAULT '[]',
+      created_at INTEGER NOT NULL
+    )`);
+    db.exec('CREATE INDEX IF NOT EXISTS idx_agent_chat_archives_role ON agent_chat_archives(agent_role)');
+  }
+
   console.log('Migrations complete.');
 }

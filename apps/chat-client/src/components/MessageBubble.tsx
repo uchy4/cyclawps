@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import type { Message } from '@app/shared';
 import { ROLE_COLORS, formatRoleName } from '@app/shared';
-import { Paperclip, Reply, SmilePlus, ChevronDown, ArrowUpRight, Pencil } from 'lucide-react';
+import { Paperclip, Reply, SmilePlus, ChevronDown, ArrowUpRight, Pencil, Trash2 } from 'lucide-react';
 import { MarkdownRenderer } from './MarkdownRenderer.js';
 
 interface MessageBubbleProps {
@@ -10,6 +10,7 @@ interface MessageBubbleProps {
   onReact?: (messageId: string, emoji: string) => void;
   onReply?: (message: Message) => void;
   onEdit?: (message: Message) => void;
+  onDelete?: (messageId: string) => void;
   accentColor?: string;
   displayName?: string;
   replyDisplayName?: string;
@@ -21,7 +22,7 @@ interface MessageBubbleProps {
 
 const QUICK_EMOJIS = ['\u{1F44D}', '\u{1F44E}', '\u{2764}\u{FE0F}', '\u{1F389}', '\u{1F440}', '\u{1F525}'];
 
-export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, accentColor, displayName: overrideName, replyDisplayName, onScrollToMessage, isConsecutive, isLastInGroup = true, mentionColors }: MessageBubbleProps) {
+export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, onDelete, accentColor, displayName: overrideName, replyDisplayName, onScrollToMessage, isConsecutive, isLastInGroup = true, mentionColors }: MessageBubbleProps) {
   const [showEmojis, setShowEmojis] = useState(false);
   const emojiRef = useRef<HTMLDivElement>(null);
   const [replyExpanded, setReplyExpanded] = useState(false);
@@ -217,7 +218,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                     <button
                       key={emoji}
                       onClick={() => onReact?.(message.id, emoji)}
-                      className="flex items-center gap-0.5 text-xs px-1.5 py-0.5 rounded-full border cursor-pointer transition-colors"
+                      className="flex items-center gap-0.5 text-sm px-2 py-0.5 h-7 rounded-full border cursor-pointer transition-colors"
                       style={{
                         borderColor: `${reactorColor}60`,
                         backgroundColor: `${reactorColor}15`,
@@ -229,44 +230,55 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                     </button>
                   );
                 })}
-                {/* Inline hover actions next to reactions */}
-                <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
-                  <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-0.5 py-0.5 shadow-lg h-6">
-                    {onReply && (
-                      <button
-                        onClick={() => onReply(message)}
-                        className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
-                        title="Reply"
-                      >
-                        <Reply className="w-3 h-3" />
-                      </button>
-                    )}
-                    {onReact && (
-                      <button
-                        onClick={() => setShowEmojis(!showEmojis)}
-                        className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
-                        title="React"
-                      >
-                        <SmilePlus className="w-3 h-3" />
-                      </button>
-                    )}
-                    {isUser && onEdit && (
-                      <button
-                        onClick={handleStartEdit}
-                        className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
-                        title="Edit"
-                      >
-                        <Pencil className="w-3 h-3" />
-                      </button>
-                    )}
+                {/* Inline hover actions next to reactions — hidden when editing */}
+                {!editing && (
+                  <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-0.5 py-0.5 shadow-lg h-7">
+                      {onReply && (
+                        <button
+                          onClick={() => onReply(message)}
+                          className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                          title="Reply"
+                        >
+                          <Reply className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {onReact && (
+                        <button
+                          onClick={() => setShowEmojis(!showEmojis)}
+                          className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                          title="React"
+                        >
+                          <SmilePlus className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {isUser && onEdit && (
+                        <button
+                          onClick={handleStartEdit}
+                          className="px-1 py-0.5 rounded text-slate-500 hover:text-slate-300 hover:bg-slate-700/50 cursor-pointer"
+                          title="Edit"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                      {isUser && onDelete && (
+                        <button
+                          onClick={() => onDelete(message.id)}
+                          className="px-1 py-0.5 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+                          title="Delete"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
 
-          {/* Emoji picker — below bubble */}
-          {showEmojis && onReact && (
+          {/* Emoji picker — below bubble, hidden when editing */}
+          {showEmojis && onReact && !editing && (
             <div ref={emojiRef} className={`absolute left-4 flex items-center gap-1 z-20 ${hasReactions ? '-bottom-1' : '-bottom-3'}`}>
               <div className="flex items-center gap-0.5 bg-slate-800 border border-slate-700 rounded-lg px-1 py-0.5 shadow-lg">
                 {QUICK_EMOJIS.map((emoji) => (
@@ -282,8 +294,8 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
             </div>
           )}
 
-          {/* Reply + React + Edit actions pill — hover only, floating when NO reactions */}
-          {!hasReactions && (
+          {/* Reply + React + Edit actions pill — hover only, floating when NO reactions, hidden when editing */}
+          {!hasReactions && !editing && (
             <div className="absolute left-4 flex items-center gap-1 z-10 opacity-0 group-hover:opacity-100 transition-opacity -bottom-3">
               <div className="flex items-center bg-slate-800 border border-slate-700 rounded-lg px-0.5 py-0.5 shadow-lg h-7">
                 {onReply && (
@@ -311,6 +323,15 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                     title="Edit"
                   >
                     <Pencil className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                {isUser && onDelete && (
+                  <button
+                    onClick={() => onDelete(message.id)}
+                    className="px-1 py-0.5 rounded text-slate-500 hover:text-red-400 hover:bg-red-500/10 cursor-pointer"
+                    title="Delete"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
                   </button>
                 )}
               </div>

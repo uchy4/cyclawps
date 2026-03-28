@@ -57,3 +57,28 @@
     background: #64748b;
   }
 }
+
+/* highlight.js syntax token colors (GitHub Dark theme) */
+.hljs-keyword { color: #ff7b72; }
+.hljs-string { color: #a5d6ff; }
+.hljs-number { color: #79c0ff; }
+.hljs-comment { color: #8b949e; font-style: italic; }
+.hljs-function,
+.hljs-title { color: #d2a8ff; }
+.hljs-built_in { color: #ffa657; }
+.hljs-literal { color: #79c0ff; }
+.hljs-type { color: #ffa657; }
+.hljs-params { color: #c9d1d9; }
+.hljs-attr,
+.hljs-attribute { color: #79c0ff; }
+.hljs-selector-class,
+.hljs-selector-tag,
+.hljs-tag,
+.hljs-name { color: #7ee787; }
+.hljs-variable,
+.hljs-property { color: #79c0ff; }
+.hljs-meta { color: #8b949e; }
+.hljs-punctuation { color: #c9d1d9; }
+.hljs-regexp { color: #7ee787; }
+.hljs-operator { color: #ff7b72; }
+.hljs-symbol { color: #79c0ff; }

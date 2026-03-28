@@ -1,7 +1,99 @@
+import React, { useState, useMemo } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeRaw from 'rehype-raw';
 import type { Components } from 'react-markdown';
+import { common, createLowlight } from 'lowlight';
+import { toHtml } from 'hast-util-to-html';
+import { evaluateSync } from '@mdx-js/mdx';
+import * as runtime from 'react/jsx-runtime';
+import { useMDXComponents } from '@mdx-js/react';
+
+const lowlight = createLowlight(common);
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  const handleCopy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+  return (
+    <button
+      onClick={handleCopy}
+      className="text-slate-400 hover:text-slate-200 transition-colors cursor-pointer"
+      title="Copy code"
+    >
+      {copied ? (
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+        </svg>
+      ) : (
+        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+        </svg>
+      )}
+    </button>
+  );
+}
+
+function PreviewToggle({ active, onClick }: { active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`transition-colors cursor-pointer ${active ? 'text-orange-400 hover:text-orange-300' : 'text-slate-400 hover:text-slate-200'}`}
+      title={active ? 'Show source' : 'Preview markdown'}
+    >
+      <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+      </svg>
+    </button>
+  );
+}
+
+// Render MDX content synchronously, falling back to plain text on error
+function MdxPreview({ source }: { source: string }) {
+  const rendered = useMemo(() => {
+    try {
+      const { default: Content } = evaluateSync(source, {
+        ...(runtime as Record<string, unknown>),
+        remarkPlugins: [remarkGfm],
+        useMDXComponents,
+      });
+      return <Content />;
+    } catch {
+      // If MDX compilation fails (invalid JSX, etc.), fall back to react-markdown
+      return <ReactMarkdown remarkPlugins={[remarkGfm]}>{source}</ReactMarkdown>;
+    }
+  }, [source]);
+
+  return <>{rendered}</>;
+}
+
+// Wrapper component for markdown code blocks with preview toggle
+function MarkdownCodeBlock({ codeString, lang }: { codeString: string; lang: string }) {
+  const [previewing, setPreviewing] = useState(false);
+  return (
+    <div className="my-1.5 rounded-lg bg-slate-900 border border-slate-700 overflow-hidden text-sm">
+      <div className="flex items-center justify-between px-3 py-1 border-b border-slate-700 bg-slate-800/60">
+        <span className="text-xs text-slate-400 font-sans">{lang}</span>
+        <div className="flex items-center gap-2">
+          <PreviewToggle active={previewing} onClick={() => setPreviewing(!previewing)} />
+          <CopyButton text={codeString} />
+        </div>
+      </div>
+      {previewing ? (
+        <div className="px-3 py-2 text-sm font-sans">
+          <MdxPreview source={codeString} />
+        </div>
+      ) : (
+        <code className="block px-3 py-2 whitespace-pre-wrap font-mono">{codeString}</code>
+      )}
+    </div>
+  );
+}
 
 interface MarkdownRendererProps {
   content: string;
@@ -68,21 +160,79 @@ function preprocessMentions(text: string, defaultColor: string, roleColors?: Rec
   return parts.join('');
 }
 
+// Helper: recursively flatten React children into a plain string
+function flattenChildren(children: React.ReactNode): string {
+  if (typeof children === 'string') return children;
+  if (typeof children === 'number') return String(children);
+  if (!children) return '';
+  if (Array.isArray(children)) return children.map(flattenChildren).join('');
+  if (typeof children === 'object' && 'props' in children) {
+    return flattenChildren((children.props as { children?: React.ReactNode }).children);
+  }
+  return '';
+}
+
+// Helper: extract code string and language from a <pre>'s children (the <code> element)
+function extractCodeInfo(children: React.ReactNode): { codeString: string; lang: string | null } {
+  let lang: string | null = null;
+
+  // react-markdown renders <pre><code className="language-X">...</code></pre>
+  const child = Array.isArray(children) ? children[0] : children;
+  if (child && typeof child === 'object' && 'props' in child) {
+    const codeProps = child.props as { className?: string; children?: React.ReactNode };
+    const langMatch = codeProps.className?.match(/language-(\w+)/);
+    lang = langMatch ? langMatch[1] : null;
+  }
+
+  const codeString = flattenChildren(children).replace(/\n$/, '');
+  return { codeString, lang };
+}
+
 const components: Components = {
-  pre: ({ children, ...props }) => (
-    <pre
-      className="my-1.5 rounded-lg bg-slate-900 border border-slate-700 px-3 py-2 overflow-x-auto text-sm font-mono"
-      {...props}
-    >
-      {children}
-    </pre>
-  ),
+  pre: ({ children, ...props }) => {
+    const { codeString, lang } = extractCodeInfo(children);
+
+    // Markdown code blocks show plain text by default with a preview toggle
+    if (lang === 'markdown' || lang === 'md') {
+      return <MarkdownCodeBlock codeString={codeString} lang={lang === 'md' ? 'markdown' : lang} />;
+    }
+
+    // Syntax-highlighted code blocks
+    let highlighted: string | null = null;
+    try {
+      if (lang && lowlight.registered(lang)) {
+        const tree = lowlight.highlight(lang, codeString);
+        highlighted = toHtml(tree);
+      }
+    } catch {
+      // Fall back to plain text
+    }
+
+    return (
+      <pre className="my-1.5 rounded-lg bg-slate-900 border border-slate-700 overflow-hidden text-sm font-mono" {...props}>
+        <div className="flex items-center justify-between px-3 py-1 border-b border-slate-700 bg-slate-800/60">
+          <span className="text-xs text-slate-400">{lang || 'code'}</span>
+          <CopyButton text={codeString} />
+        </div>
+        {highlighted ? (
+          <code
+            className="block px-3 py-2 whitespace-pre-wrap"
+            dangerouslySetInnerHTML={{ __html: highlighted }}
+          />
+        ) : (
+          <code className="block px-3 py-2 whitespace-pre-wrap">{codeString}</code>
+        )}
+      </pre>
+    );
+  },
   code: ({ children, className, ...props }) => {
-    const isBlock = className?.startsWith('language-') || false;
-    if (isBlock) {
+    // If this code has a language class, it's block code being rendered inside our custom <pre>
+    // Just pass through — the <pre> component handles everything
+    if (className?.startsWith('language-')) {
       return <code className={className} {...props}>{children}</code>;
     }
-    // Check if parent is a <pre> — if so, render as block code
+
+    // Inline code
     return (
       <code
         className="rounded bg-slate-700/80 px-1.5 py-0.5 text-sm font-mono text-orange-300"

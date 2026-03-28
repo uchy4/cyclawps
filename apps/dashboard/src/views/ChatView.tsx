@@ -11,8 +11,9 @@ import { useWhisper } from '../hooks/useWhisper.js';
 import { useAudioDevices } from '../hooks/useAudioDevices.js';
 import { MicSelector } from '../components/MicSelector.js';
 import type { Message, Attachment, Thread } from '@app/shared';
-import { ROLE_COLORS } from '@app/shared';
+import { ROLE_COLORS, Modal } from '@app/shared';
 import { ThreadHeader } from '../components/ThreadHeader.js';
+import { AgentChatHeader } from '../components/AgentChatHeader.js';
 import { ChatEditor, type ChatEditorHandle } from '../components/ChatEditor.js';
 
 interface AgentInfo {
@@ -37,8 +38,11 @@ export function ChatView() {
     connected,
     pendingAuths,
     sendMessage,
+    editMessage,
+    deleteMessage,
     toggleReaction,
     authorize,
+    refreshMessages,
   } = useMessages(threadId, agentRole);
   const [thread, setThread] = useState<Thread | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -58,6 +62,68 @@ export function ChatView() {
     setSelectedDeviceId,
   } = useAudioDevices();
   const whisper = useWhisper(selectedDeviceId);
+  const [archives, setArchives] = useState<{ id: string; agentRole: string; name: string; messageCount: number; createdAt: number }[]>([]);
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [archiveName, setArchiveName] = useState('');
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
+
+  // Fetch archives for agent chat
+  useEffect(() => {
+    if (!agentRole) { setArchives([]); return; }
+    fetch(`/api/agent-archives/${agentRole}`)
+      .then((r) => r.json())
+      .then((data) => setArchives(data))
+      .catch(() => {});
+  }, [agentRole]);
+
+  const handleArchive = useCallback(() => {
+    if (!agentRole) return;
+    setArchiveName(`Archive ${new Date().toLocaleDateString()}`);
+    setArchiveModalOpen(true);
+  }, [agentRole]);
+
+  const confirmArchive = useCallback(() => {
+    if (!agentRole || !archiveName.trim()) return;
+    setArchiveModalOpen(false);
+    fetch(`/api/agent-archives/${agentRole}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: archiveName.trim() }),
+    })
+      .then((r) => r.json())
+      .then((result) => {
+        if (result.id) {
+          setArchives((prev) => [{ id: result.id, agentRole, name: result.name, messageCount: result.messageCount, createdAt: result.createdAt }, ...prev]);
+          refreshMessages();
+        }
+      })
+      .catch((err) => console.error('Archive failed:', err));
+  }, [agentRole, archiveName, refreshMessages]);
+
+  const handleRestore = useCallback((archiveId: string) => {
+    if (!agentRole) return;
+    fetch(`/api/agent-archives/${agentRole}/${archiveId}/restore`, { method: 'POST' })
+      .then((r) => r.json())
+      .then(() => {
+        // Re-fetch archives list and messages
+        fetch(`/api/agent-archives/${agentRole}`)
+          .then(r => r.json())
+          .then(data => setArchives(data))
+          .catch(() => {});
+        refreshMessages();
+      })
+      .catch(() => {});
+  }, [agentRole, refreshMessages]);
+
+  const handleDeleteArchive = useCallback((archiveId: string) => {
+    if (!agentRole) return;
+    fetch(`/api/agent-archives/${agentRole}/${archiveId}`, { method: 'DELETE' })
+      .then(() => {
+        setArchives((prev) => prev.filter((a) => a.id !== archiveId));
+      })
+      .catch(() => {});
+  }, [agentRole]);
 
   // Fetch agents and tasks for mention popups
   useEffect(() => {
@@ -96,8 +162,12 @@ export function ChatView() {
     return map;
   }, [agents]);
 
+  const prevMessageCount = useRef(0);
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (messages.length > prevMessageCount.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    prevMessageCount.current = messages.length;
   }, [messages.length]);
 
   // Clear reply when switching threads/agents
@@ -205,8 +275,8 @@ export function ChatView() {
   }, []);
 
   const handleEdit = useCallback((updated: Message) => {
-    console.log('Edit message:', updated.id, updated.content);
-  }, []);
+    editMessage(updated.id, updated.content);
+  }, [editMessage]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -257,8 +327,22 @@ export function ChatView() {
         <ThreadHeader thread={thread} agents={agents} onThreadUpdate={setThread} />
       )}
 
+      {/* Agent chat header */}
+      {agentRole && !threadId && (
+        <AgentChatHeader
+          agentRole={agentRole}
+          agentName={chatAgent?.displayName || chatAgent?.name || agentRole}
+          accentColor={chatAgent?.accentColor || undefined}
+          onArchive={handleArchive}
+          onRestore={handleRestore}
+          onDeleteArchive={handleDeleteArchive}
+          archives={archives}
+        />
+      )}
+
       {/* Messages */}
       <div className="flex-1 overflow-auto px-8 py-4">
+      <div className="max-w-4xl mx-auto w-full">
         {loading && (
           <div className="text-slate-400 animate-pulse">
             Loading messages...
@@ -299,6 +383,7 @@ export function ChatView() {
                 onReact={toggleReaction}
                 onReply={handleReply}
                 onEdit={handleEdit}
+                onDelete={(id) => { setDeleteTargetId(id); setDeleteModalOpen(true); }}
                 onScrollToMessage={scrollToMessage}
                 accentColor={agentData?.accentColor || undefined}
                 displayName={
@@ -318,10 +403,12 @@ export function ChatView() {
         })}
         <div ref={messagesEndRef} />
       </div>
+      </div>
 
       {/* Reply banner */}
       {replyTo && (
         <div className="px-8 pt-2">
+          <div className="max-w-4xl mx-auto w-full">
           <div className="flex items-center gap-2 text-xs text-slate-400 bg-slate-800 border border-slate-700 rounded-lg px-3 py-2">
             <Reply className="w-3.5 h-3.5 shrink-0" />
             <span className="truncate flex-1">
@@ -338,12 +425,14 @@ export function ChatView() {
               <X className="w-3.5 h-3.5" />
             </button>
           </div>
+          </div>
         </div>
       )}
 
       {/* Attachments preview */}
       {attachments.length > 0 && (
         <div className="px-8 pt-2">
+          <div className="max-w-4xl mx-auto w-full">
           <div className="flex gap-2 flex-wrap">
             {attachments.map((att, i) => (
               <div
@@ -360,6 +449,7 @@ export function ChatView() {
                 </button>
               </div>
             ))}
+          </div>
           </div>
         </div>
       )}
@@ -394,6 +484,7 @@ export function ChatView() {
 
       {/* Input bar */}
       <div className="px-8 pb-8 pt-2">
+      <div className="max-w-4xl mx-auto w-full">
         <div
           className={`flex items-center gap-3 rounded-xl border bg-slate-800 px-4 py-3 transition-colors ${
             whisper.isRecording ? 'border-orange-500/50' : 'border-slate-700'
@@ -559,6 +650,74 @@ export function ChatView() {
           )}
         </div>
       </div>
+      </div>
+
+      {/* Archive modal */}
+      <Modal
+        open={archiveModalOpen}
+        onClose={() => setArchiveModalOpen(false)}
+        title="Archive Chat"
+        footer={
+          <>
+            <button
+              onClick={() => setArchiveModalOpen(false)}
+              className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmArchive}
+              className="px-3 py-1.5 text-sm text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors cursor-pointer"
+            >
+              Archive
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-400 mb-3">
+          This will save the current conversation and clear the chat.
+        </p>
+        <input
+          type="text"
+          value={archiveName}
+          onChange={(e) => setArchiveName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') confirmArchive(); }}
+          placeholder="Archive name..."
+          autoFocus
+          className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-orange-500/50 transition-colors"
+        />
+      </Modal>
+
+      {/* Delete confirmation modal */}
+      <Modal
+        open={deleteModalOpen}
+        onClose={() => { setDeleteModalOpen(false); setDeleteTargetId(null); }}
+        title="Delete Message"
+        footer={
+          <>
+            <button
+              onClick={() => { setDeleteModalOpen(false); setDeleteTargetId(null); }}
+              className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={() => {
+                if (deleteTargetId) deleteMessage(deleteTargetId);
+                setDeleteModalOpen(false);
+                setDeleteTargetId(null);
+              }}
+              className="px-3 py-1.5 text-sm text-white bg-red-500 hover:bg-red-600 rounded-lg transition-colors cursor-pointer"
+            >
+              Delete
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-400">
+          Are you sure you want to delete this message? This cannot be undone.
+        </p>
+      </Modal>
     </div>
   );
 }

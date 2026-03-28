@@ -8,3 +8,4 @@ export * from './constants.js';
 export * from './ws-events.js';
 export { useSocket } from './hooks/useSocket.js';
 export { Drawer } from './components/Drawer.js';
+export { Modal } from './components/Modal.js';

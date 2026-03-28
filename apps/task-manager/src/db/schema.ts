@@ -126,4 +126,13 @@ CREATE INDEX IF NOT EXISTS idx_task_logs_task_guid ON task_logs(task_guid);
 CREATE INDEX IF NOT EXISTS idx_task_logs_created_at ON task_logs(created_at);
 CREATE INDEX IF NOT EXISTS idx_thread_participants_thread_id ON thread_participants(thread_id);
 CREATE INDEX IF NOT EXISTS idx_thread_tasks_thread_id ON thread_tasks(thread_id);
+
+CREATE TABLE IF NOT EXISTS agent_chat_archives (
+  id TEXT PRIMARY KEY,
+  agent_role TEXT NOT NULL,
+  name TEXT NOT NULL,
+  messages TEXT NOT NULL DEFAULT '[]',
+  created_at INTEGER NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_agent_chat_archives_role ON agent_chat_archives(agent_role);
 `;

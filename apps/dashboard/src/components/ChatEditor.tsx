@@ -51,6 +51,8 @@ function jsonToPlainText(json: Record<string, unknown>): string {
   function walk(node: Record<string, unknown>) {
     if (node.type === 'text') {
       parts.push(node.text as string);
+    } else if (node.type === 'hardBreak') {
+      parts.push('\n');
     } else if (node.type === 'agentMention') {
       const attrs = node.attrs as { label: string };
       parts.push(`@${attrs.label}`);

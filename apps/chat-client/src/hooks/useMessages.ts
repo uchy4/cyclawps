@@ -69,8 +69,20 @@ export function useMessages(threadId?: string, agentRole?: string) {
       );
     };
 
+    const onEdited = ({ messageId, content }: { messageId: string; content: string }) => {
+      setMessages((prev) =>
+        prev.map((msg) => msg.id === messageId ? { ...msg, content } : msg)
+      );
+    };
+
+    const onDeleted = ({ messageId }: { messageId: string }) => {
+      setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+    };
+
     socket.on('message:new', onMessage);
     socket.on('message:reaction', onReaction);
+    socket.on('message:edited', onEdited);
+    socket.on('message:deleted', onDeleted);
 
     socket.on('pipeline:auth_required', (data) => {
       setPendingAuths((prev) => [...prev, data]);
@@ -83,6 +95,8 @@ export function useMessages(threadId?: string, agentRole?: string) {
     return () => {
       socket.off('message:new', onMessage);
       socket.off('message:reaction', onReaction);
+      socket.off('message:edited', onEdited);
+      socket.off('message:deleted', onDeleted);
       socket.off('pipeline:auth_required');
       socket.off('pipeline:completed');
     };
@@ -92,6 +106,22 @@ export function useMessages(threadId?: string, agentRole?: string) {
     (content: string, msgThreadId?: string, inReplyTo?: string, attachments?: Attachment[], msgAgentRole?: string) => {
       if (!socket) return;
       socket.emit('message:send', { content, threadId: msgThreadId, inReplyTo, attachments, agentRole: msgAgentRole });
+    },
+    [socket]
+  );
+
+  const editMessage = useCallback(
+    (messageId: string, content: string) => {
+      if (!socket) return;
+      socket.emit('message:edit', { messageId, content });
+    },
+    [socket]
+  );
+
+  const deleteMessage = useCallback(
+    (messageId: string) => {
+      if (!socket) return;
+      socket.emit('message:delete', { messageId });
     },
     [socket]
   );
@@ -115,5 +145,21 @@ export function useMessages(threadId?: string, agentRole?: string) {
     [socket]
   );
 
-  return { messages, loading, connected, pendingAuths, sendMessage, toggleReaction, authorize };
+  const refreshMessages = useCallback(() => {
+    setLoading(true);
+    setMessages([]);
+    const params = new URLSearchParams({ limit: '200' });
+    if (threadId) params.set('thread_id', threadId);
+    if (agentRole) params.set('agent_role', agentRole);
+    fetch(`/api/messages?${params}`)
+      .then((r) => r.json())
+      .then((data) => {
+        const msgs = Array.isArray(data) ? data : data.messages;
+        setMessages(msgs);
+        setLoading(false);
+      })
+      .catch(() => setLoading(false));
+  }, [threadId, agentRole]);
+
+  return { messages, loading, connected, pendingAuths, sendMessage, editMessage, deleteMessage, toggleReaction, authorize, refreshMessages };
 }

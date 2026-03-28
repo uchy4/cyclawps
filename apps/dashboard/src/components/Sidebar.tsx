@@ -1,8 +1,8 @@
-import { NavLink, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
-import { LayoutGrid, MessageSquare, Bot, ChevronDown, ChevronRight, Archive, Hash, Users, Plus, Tag } from 'lucide-react';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback } from 'react';
+import { LayoutGrid, MessageSquare, Bot, ChevronDown, ChevronRight, Archive, Hash, Users, Plus, Tag, RotateCcw } from 'lucide-react';
 import type { AgentConfig, Thread } from '@app/shared';
-import { ROLE_COLORS, formatRoleName } from '@app/shared';
+import { ROLE_COLORS, formatRoleName, Modal } from '@app/shared';
 import { CreateThreadDialog } from './CreateThreadDialog.js';
 
 interface SidebarProps {
@@ -88,7 +88,13 @@ export function ChatSubSidebar() {
   });
   const [showArchived, setShowArchived] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [agentArchives, setAgentArchives] = useState<Record<string, { id: string; name: string; messageCount: number; createdAt: number }[]>>({});
+  const [expandedAgentArchives, setExpandedAgentArchives] = useState<Set<string>>(new Set());
+  const [archiveModalOpen, setArchiveModalOpen] = useState(false);
+  const [archiveModalRole, setArchiveModalRole] = useState('');
+  const [archiveModalName, setArchiveModalName] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetch('/api/threads')
@@ -97,9 +103,66 @@ export function ChatSubSidebar() {
       .catch(() => {});
     fetch('/api/agents')
       .then(r => r.json())
-      .then(data => setAgents(data))
+      .then(data => {
+        setAgents(data);
+        // Fetch archives for each agent
+        for (const agent of data as AgentConfig[]) {
+          fetch(`/api/agent-archives/${agent.role}`)
+            .then(r => r.json())
+            .then(archives => {
+              setAgentArchives(prev => ({ ...prev, [agent.role]: archives }));
+            })
+            .catch(() => {});
+        }
+      })
       .catch(() => {});
   }, []);
+
+  const handleAgentArchive = useCallback((agentRole: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setArchiveModalRole(agentRole);
+    setArchiveModalName(`Archive ${new Date().toLocaleDateString()}`);
+    setArchiveModalOpen(true);
+  }, []);
+
+  const confirmSidebarArchive = useCallback(() => {
+    if (!archiveModalRole || !archiveModalName.trim()) return;
+    setArchiveModalOpen(false);
+    fetch(`/api/agent-archives/${archiveModalRole}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name: archiveModalName.trim() }),
+    })
+      .then(r => r.json())
+      .then(result => {
+        if (result.id) {
+          setAgentArchives(prev => ({
+            ...prev,
+            [archiveModalRole]: [{ id: result.id, name: result.name, messageCount: result.messageCount, createdAt: result.createdAt }, ...(prev[archiveModalRole] || [])],
+          }));
+          navigate('/chat', { replace: true });
+          setTimeout(() => navigate(`/chat/agent/${archiveModalRole}`, { replace: true }), 100);
+        }
+      })
+      .catch((err) => console.error('Archive failed:', err));
+  }, [archiveModalRole, archiveModalName, navigate]);
+
+  const handleAgentRestore = useCallback((agentRole: string, archiveId: string) => {
+    fetch(`/api/agent-archives/${agentRole}/${archiveId}/restore`, { method: 'POST' })
+      .then(r => r.json())
+      .then(() => {
+        // Remove restored archive from list, re-fetch to get any auto-saved archive
+        fetch(`/api/agent-archives/${agentRole}`)
+          .then(r => r.json())
+          .then(archives => setAgentArchives(prev => ({ ...prev, [agentRole]: archives })))
+          .catch(() => {});
+        // Navigate away briefly and back to force useMessages to re-fetch
+        navigate('/chat', { replace: true });
+        setTimeout(() => navigate(`/chat/agent/${agentRole}`, { replace: true }), 100);
+      })
+      .catch(() => {});
+  }, [navigate]);
 
   // Persist archived threads
   useEffect(() => {
@@ -158,19 +221,63 @@ export function ChatSubSidebar() {
             const availability = getAgentAvailability(agent.role);
             const dotColor = AVAILABILITY_DOT_COLORS[availability];
             const color = agent.accentColor || ROLE_COLORS[agent.role] || '#8b949e';
+            const archives = agentArchives[agent.role] || [];
+            const isExpanded = expandedAgentArchives.has(agent.role);
             return (
-              <NavLink
-                key={agent.role}
-                to={`/chat/agent/${agent.role}`}
-                className={({ isActive }) =>
-                  `flex items-center gap-2 px-3 py-1.5 rounded-md text-base transition-colors ${
-                    isActive ? 'text-orange-400 font-medium bg-slate-700/50' : 'text-slate-300 hover:text-slate-200 hover:bg-slate-700/30'
-                  }`
-                }
-              >
-                <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
-                <span className="truncate" style={{ color }}>{agent.displayName || formatRoleName(agent.role)}</span>
-              </NavLink>
+              <div key={agent.role}>
+                <div className="group relative">
+                  <NavLink
+                    to={`/chat/agent/${agent.role}`}
+                    className={({ isActive }) =>
+                      `flex items-center gap-2 px-3 py-1.5 rounded-md text-base transition-colors ${
+                        isActive ? 'text-orange-400 font-medium bg-slate-700/50' : 'text-slate-300 hover:text-slate-200 hover:bg-slate-700/30'
+                      }`
+                    }
+                  >
+                    <span className={`w-1.5 h-1.5 rounded-full shrink-0 ${dotColor}`} />
+                    <span className="truncate" style={{ color }}>{agent.displayName || formatRoleName(agent.role)}</span>
+                  </NavLink>
+                  <div className="absolute right-1.5 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    {archives.length > 0 && (
+                      <button
+                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setExpandedAgentArchives(prev => { const next = new Set(prev); if (next.has(agent.role)) next.delete(agent.role); else next.add(agent.role); return next; }); }}
+                        className="p-1 rounded text-slate-600 hover:text-slate-400 cursor-pointer"
+                        title={`${archives.length} archived chat${archives.length !== 1 ? 's' : ''}`}
+                      >
+                        <span className="text-[9px]">{archives.length}</span>
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => handleAgentArchive(agent.role, e)}
+                      className="p-1 rounded text-slate-600 hover:text-slate-400 cursor-pointer"
+                      title="Archive chat"
+                    >
+                      <Archive className="w-3 h-3" />
+                    </button>
+                  </div>
+                </div>
+                {/* Expandable archived chats */}
+                {isExpanded && archives.length > 0 && (
+                  <div className="ml-5 mt-0.5 mb-1 space-y-0.5">
+                    {archives.map(archive => (
+                      <div
+                        key={archive.id}
+                        className="group/archive flex items-center gap-1.5 px-2 py-1 rounded text-[11px] text-slate-500 hover:text-slate-300 hover:bg-slate-700/30 transition-colors"
+                      >
+                        <Archive className="w-2.5 h-2.5 shrink-0" />
+                        <span className="truncate flex-1">{archive.name}</span>
+                        <button
+                          onClick={() => handleAgentRestore(agent.role, archive.id)}
+                          className="p-0.5 rounded text-slate-600 hover:text-green-400 opacity-0 group-hover/archive:opacity-100 transition-opacity cursor-pointer"
+                          title="Restore this chat"
+                        >
+                          <RotateCcw className="w-2.5 h-2.5" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             );
           })}
 
@@ -290,6 +397,42 @@ export function ChatSubSidebar() {
       </div>
 
       <CreateThreadDialog open={showCreateDialog} onClose={() => setShowCreateDialog(false)} />
+
+      {/* Archive modal */}
+      <Modal
+        open={archiveModalOpen}
+        onClose={() => setArchiveModalOpen(false)}
+        title="Archive Chat"
+        footer={
+          <>
+            <button
+              onClick={() => setArchiveModalOpen(false)}
+              className="px-3 py-1.5 text-sm text-slate-400 hover:text-slate-200 rounded-lg hover:bg-slate-700 transition-colors cursor-pointer"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmSidebarArchive}
+              className="px-3 py-1.5 text-sm text-white bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors cursor-pointer"
+            >
+              Archive
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-slate-400 mb-3">
+          This will save the current conversation and clear the chat.
+        </p>
+        <input
+          type="text"
+          value={archiveModalName}
+          onChange={(e) => setArchiveModalName(e.target.value)}
+          onKeyDown={(e) => { if (e.key === 'Enter') confirmSidebarArchive(); }}
+          placeholder="Archive name..."
+          autoFocus
+          className="w-full bg-slate-900 border border-slate-600 rounded-lg px-3 py-2 text-sm text-white placeholder-slate-500 outline-none focus:border-orange-500/50 transition-colors"
+        />
+      </Modal>
     </>
   );
 }

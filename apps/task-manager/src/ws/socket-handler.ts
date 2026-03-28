@@ -12,13 +12,15 @@ export function registerSocketHandlers(
 
     // Handle user messages (with reply + attachments support)
     socket.on('message:send', (data) => {
+      const content = (data.content || '').trim();
+      if (!content) return; // Ignore empty/whitespace-only messages
       const now = Date.now();
       const id = uuid();
 
       db.prepare(
         `INSERT INTO messages (id, sender_type, sender_name, content, task_id, thread_id, in_reply_to, attachments, agent_role, created_at)
          VALUES (?, 'user', 'user', ?, ?, ?, ?, ?, ?, ?)`
-      ).run(id, data.content, data.taskId || null, data.threadId || null, data.inReplyTo || null, JSON.stringify(data.attachments || []), data.agentRole || null, now);
+      ).run(id, content, data.taskId || null, data.threadId || null, data.inReplyTo || null, JSON.stringify(data.attachments || []), data.agentRole || null, now);
 
       const attachments = data.attachments || [];
 
@@ -26,7 +28,7 @@ export function registerSocketHandlers(
         id,
         senderType: 'user' as const,
         senderName: 'user',
-        content: data.content,
+        content,
         taskId: data.taskId || null,
         threadId: data.threadId || null,
         inReplyTo: data.inReplyTo || null,
@@ -36,6 +38,22 @@ export function registerSocketHandlers(
       };
 
       io.emit('message:new', { message });
+    });
+
+    // Handle message deletes
+    socket.on('message:delete', (data: { messageId: string }) => {
+      if (!data.messageId) return;
+      db.prepare('DELETE FROM reactions WHERE message_id = ?').run(data.messageId);
+      db.prepare('DELETE FROM messages WHERE id = ? AND sender_type = ?').run(data.messageId, 'user');
+      io.emit('message:deleted', { messageId: data.messageId });
+    });
+
+    // Handle message edits
+    socket.on('message:edit', (data: { messageId: string; content: string }) => {
+      const content = (data.content || '').trim();
+      if (!content || !data.messageId) return;
+      db.prepare('UPDATE messages SET content = ? WHERE id = ? AND sender_type = ?').run(content, data.messageId, 'user');
+      io.emit('message:edited', { messageId: data.messageId, content });
     });
 
     // Handle reactions
