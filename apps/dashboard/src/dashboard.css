@@ -58,6 +58,13 @@
   }
 }
 
+/* Transcribing sound wave animation */
+@keyframes transcribe-wave {
+  0% { height: 4px; opacity: 0.4; }
+  50% { height: 24px; opacity: 0.9; }
+  100% { height: 4px; opacity: 0.4; }
+}
+
 /* highlight.js syntax token colors (GitHub Dark theme) */
 .hljs-keyword { color: #ff7b72; }
 .hljs-string { color: #a5d6ff; }

@@ -41,13 +41,11 @@ export function Header({ collapsed, onToggle }: HeaderProps) {
 
   return (
     <header className="flex items-center bg-zinc-800 border-b-2 border-orange-400 shrink-0 h-14">
-      <div className={`${collapsed ? 'w-14' : 'w-14 lg:w-60'} flex justify-center items-center gap-3 shrink-0 border-r border-zinc-700 transition-all duration-200`}>
-        <img src="/claw.svg" alt="Logo" className={collapsed ? "w-8 h-12 m-2" : "w-8 h-12 m-2 lg:h-12 lg:w-auto"} />
-        {!collapsed && (
-          <h1 className="text-2xl text-zinc-500 font-mono tracking-wider font-semibold hidden lg:block">
-            cy<span className="font-bold italic text-orange-400 pr-[2px]">CLAW</span>ps
-          </h1>
-        )}
+      <div className={`${collapsed ? 'w-14' : 'w-14 lg:w-60'} flex items-center shrink-0 border-r border-zinc-700 transition-all duration-200 overflow-hidden`}>
+        <img src="/claw.svg" alt="Logo" className="w-8 h-12 ml-3 shrink-0" />
+        <h1 className={`text-2xl text-zinc-500 font-mono tracking-wider font-semibold whitespace-nowrap ml-3 transition-opacity duration-200 ${collapsed ? 'opacity-0 w-0' : 'opacity-0 lg:opacity-100'}`}>
+          cy<span className="font-bold italic text-orange-400 pr-[2px]">claw</span>ps
+        </h1>
       </div>
       <div className="flex-1 flex items-center justify-between px-4">
         <div className="flex items-center gap-3">

@@ -12,50 +12,51 @@ interface SidebarProps {
 export function Sidebar({ collapsed }: SidebarProps) {
   const showLabels = !collapsed;
 
+  // Collapsed: inner width = 40px, icon 20px → pad 10px to center
+  // Expanded: inner width = 40px+, icon 16px → pad 12px (px-3)
+  const linkPadX = collapsed ? 10 : 12;
+  const linkClass = (isActive: boolean) =>
+    `flex items-center gap-3 py-2.5 rounded-lg transition-all duration-200 ${
+      isActive ? 'bg-zinc-700/50 text-orange-400 font-medium' : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800/50'
+    }`;
+
   return (
     <nav className={`${collapsed ? 'w-14' : 'w-14 lg:w-60'} bg-zinc-800 border-r border-zinc-700 flex flex-col shrink-0 transition-all duration-200`}>
       <div className="flex flex-col gap-0.5 p-2 flex-1 overflow-y-auto">
         {/* Tasks */}
         <NavLink
           to="/kanban"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              isActive ? 'bg-zinc-700/50 text-orange-400 font-medium' : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800/50'
-            }`
-          }
+          className={({ isActive }) => linkClass(isActive)}
+          style={{ paddingLeft: linkPadX, paddingRight: linkPadX }}
         >
-          <LayoutGrid className="w-4 h-4 shrink-0" />
+          <LayoutGrid className="shrink-0 transition-all duration-200" style={{ width: collapsed ? 20 : 16, height: collapsed ? 20 : 16 }} />
           {showLabels && <span className="hidden lg:inline">Tasks</span>}
         </NavLink>
 
         {/* Chat */}
         <NavLink
           to="/chat"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              isActive ? 'bg-zinc-700/50 text-orange-400 font-medium' : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800/50'
-            }`
-          }
+          className={({ isActive }) => linkClass(isActive)}
+          style={{ paddingLeft: linkPadX, paddingRight: linkPadX }}
         >
-          <MessageSquare className="w-4 h-4 shrink-0" />
+          <MessageSquare className="shrink-0 transition-all duration-200" style={{ width: collapsed ? 20 : 16, height: collapsed ? 20 : 16 }} />
           {showLabels && <span className="hidden lg:inline">Chat</span>}
         </NavLink>
 
         {/* Agents */}
         <NavLink
           to="/configurator"
-          className={({ isActive }) =>
-            `flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors ${
-              isActive ? 'bg-zinc-700/50 text-orange-400 font-medium' : 'text-zinc-400 hover:text-zinc-300 hover:bg-zinc-800/50'
-            }`
-          }
+          className={({ isActive }) => linkClass(isActive)}
+          style={{ paddingLeft: linkPadX, paddingRight: linkPadX }}
         >
-          <Bot className="w-4 h-4 shrink-0" />
+          <Bot className="shrink-0 transition-all duration-200" style={{ width: collapsed ? 20 : 16, height: collapsed ? 20 : 16 }} />
           {showLabels && <span className="hidden lg:inline">Agents</span>}
         </NavLink>
       </div>
-      <div className="p-3 border-t border-zinc-700">
-        {showLabels && <div className="text-[10px] text-zinc-500 hidden lg:block">Cyclawps v0.1</div>}
+      <div className="p-3 border-t border-zinc-700 overflow-hidden">
+        <div className="text-[10px] text-zinc-500 whitespace-nowrap">
+          {showLabels ? <span className="hidden lg:inline">Cyclawps </span> : null}v0.1
+        </div>
       </div>
     </nav>
   );

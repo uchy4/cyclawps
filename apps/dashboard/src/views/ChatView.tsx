@@ -248,13 +248,25 @@ export function ChatView() {
     }
   }, [threadId, thread, agents]);
 
+  const pendingTranscript = useRef<string | null>(null);
+
   const handleMicClick = async () => {
     if (whisper.isRecording) {
       const transcribed = await whisper.stopAndTranscribe();
       if (transcribed) {
-        editorRef.current?.insertText(transcribed);
+        // Queue the text — editor may not be mounted yet since we just left transcribing state
+        pendingTranscript.current = transcribed;
+        // Wait for React to re-render (editor becomes visible), then insert
+        requestAnimationFrame(() => {
+          setTimeout(() => {
+            if (pendingTranscript.current) {
+              editorRef.current?.insertText(pendingTranscript.current);
+              pendingTranscript.current = null;
+            }
+            editorRef.current?.focus();
+          }, 50);
+        });
       }
-      editorRef.current?.focus();
     } else {
       await whisper.startRecording();
     }
@@ -502,24 +514,35 @@ export function ChatView() {
           )}
 
           <div className="flex-1 min-h-[40px] flex items-center w-full">
-            {whisper.isRecording ? (
+            {(whisper.isRecording || whisper.isTranscribing) ? (
               <div className="flex items-center justify-center gap-[3px] min-h-[24px] w-full">
-                {whisper.levels.map((level, i) => (
-                  <span
-                    key={i}
-                    className="inline-block w-[3px] rounded-full bg-orange-400 transition-[height] duration-75"
-                    style={{
-                      height: `${
-                        MIN_BAR_H +
-                        Math.min(level / VOLUME_CEIL, 1) *
-                          (MAX_BAR_H - MIN_BAR_H)
-                      }px`,
-                      opacity: 0.4 + Math.min(level / VOLUME_CEIL, 1) * 0.6,
-                    }}
-                  />
-                ))}
+                {whisper.isRecording
+                  ? whisper.levels.map((level, i) => (
+                      <span
+                        key={i}
+                        className="inline-block w-[3px] rounded-full bg-orange-400 transition-[height] duration-75"
+                        style={{
+                          height: `${
+                            MIN_BAR_H +
+                            Math.min(level / VOLUME_CEIL, 1) *
+                              (MAX_BAR_H - MIN_BAR_H)
+                          }px`,
+                          opacity: 0.4 + Math.min(level / VOLUME_CEIL, 1) * 0.6,
+                        }}
+                      />
+                    ))
+                  : Array.from({ length: whisper.levels.length || 24 }).map((_, i) => (
+                      <span
+                        key={i}
+                        className="inline-block w-[3px] rounded-full bg-orange-400"
+                        style={{
+                          animation: `transcribe-wave 1.2s ease-in-out ${i * 0.08}s infinite`,
+                        }}
+                      />
+                    ))
+                }
                 <span className="ml-3 text-base text-orange-400">
-                  Listening...
+                  {whisper.isRecording ? 'Listening...' : `Transcribing${'.'.repeat(dots)}`}
                 </span>
               </div>
             ) : (
@@ -527,7 +550,7 @@ export function ChatView() {
                 <ChatEditor
                   ref={editorRef}
                   onSubmit={handleEditorSubmit}
-                  disabled={!connected || whisper.isTranscribing}
+                  disabled={!connected}
                   placeholder={placeholderText}
                   agents={agents}
                   tasks={tasks}
@@ -535,13 +558,6 @@ export function ChatView() {
                   onTaskMentioned={handleTaskMentioned}
                   onAgentMentioned={handleAgentMentioned}
                 />
-                {whisper.isTranscribing && (
-                  <div className="absolute inset-0 flex items-center pointer-events-none">
-                    <span className="text-base text-orange-400">
-                      Transcribing{'.'.repeat(dots)}
-                    </span>
-                  </div>
-                )}
               </div>
             )}
           </div>
@@ -555,6 +571,8 @@ export function ChatView() {
             >
               <Square className="w-5 h-5" />
             </button>
+          ) : whisper.isTranscribing ? (
+            null
           ) : (
             <>
               {/* Attach file */}
