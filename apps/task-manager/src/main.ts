@@ -1,4 +1,10 @@
-import 'dotenv/config';
+import { config as dotenvConfig } from 'dotenv';
+const dotenvResult = dotenvConfig();
+if (dotenvResult.parsed) {
+  for (const [k, v] of Object.entries(dotenvResult.parsed)) {
+    if (!process.env[k]) process.env[k] = v;
+  }
+}
 import './types.js';
 import Fastify from 'fastify';
 import cors from '@fastify/cors';

@@ -17,19 +17,9 @@ export interface AgentResult {
 
 /**
  * Invokes an agent using the Claude Agent SDK.
- * Reads the API key from the environment variable specified in the agent config.
  */
 export async function invokeAgent(options: InvokeAgentOptions): Promise<AgentResult> {
   const { config, prompt, cwd, onStream, onStatusChange } = options;
-
-  // Resolve API key: agent-specific env var -> ANTHROPIC_API_KEY fallback
-  const apiKey = process.env[config.apiKeyEnv] || process.env['ANTHROPIC_API_KEY'];
-  if (!apiKey) {
-    return {
-      success: false,
-      output: `Missing API key: set ${config.apiKeyEnv} or ANTHROPIC_API_KEY`,
-    };
-  }
 
   // Resolve model from env override or config
   const envModelKey = `AGENT_${config.role.toUpperCase()}_MODEL`;
@@ -39,15 +29,15 @@ export async function invokeAgent(options: InvokeAgentOptions): Promise<AgentRes
   const envTurnsKey = `AGENT_${config.role.toUpperCase()}_MAX_TURNS`;
   const maxTurns = parseInt(process.env[envTurnsKey] || '', 10) || config.maxTurns;
 
+  console.log(`[agent:${config.role}] Invoking via Agent SDK (model: ${model})`);
   onStatusChange?.('running');
 
   try {
-    // Import the Agent SDK dynamically to handle cases where it's not installed
     const { query } = await import('@anthropic-ai/claude-agent-sdk');
 
     const collectedOutput: string[] = [];
 
-    for await (const message of query({
+    for await (const event of query({
       prompt,
       options: {
         systemPrompt: config.systemPrompt,
@@ -55,22 +45,26 @@ export async function invokeAgent(options: InvokeAgentOptions): Promise<AgentRes
         model: model as 'opus' | 'sonnet' | 'haiku',
         maxTurns,
         cwd: cwd || process.cwd(),
-        env: {
-          ...process.env,
-          ANTHROPIC_API_KEY: apiKey,
-        },
       },
     })) {
-      // Extract text content from assistant messages
-      if (message && typeof message === 'object' && 'type' in message) {
-        const msg = message as Record<string, unknown>;
-        if (msg['type'] === 'assistant' && Array.isArray(msg['content'])) {
-          for (const block of msg['content'] as Array<Record<string, unknown>>) {
+      if (!event || typeof event !== 'object' || !('type' in event)) continue;
+      const evt = event as Record<string, unknown>;
+
+      if (evt['type'] === 'assistant') {
+        const msg = evt['message'] as Record<string, unknown> | undefined;
+        const content = msg?.['content'] as Array<Record<string, unknown>> | undefined;
+        if (content) {
+          for (const block of content) {
             if (block['type'] === 'text' && typeof block['text'] === 'string') {
               collectedOutput.push(block['text']);
               onStream?.(block['text']);
             }
           }
+        }
+      } else if (evt['type'] === 'result' && typeof evt['result'] === 'string') {
+        if (collectedOutput.length === 0) {
+          collectedOutput.push(evt['result'] as string);
+          onStream?.(evt['result'] as string);
         }
       }
     }

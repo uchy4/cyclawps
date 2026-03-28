@@ -239,12 +239,11 @@ export function executeDirectives(
         content: `${agentRole} handed off to ${targetAgent}: ${reason}`,
         taskId: null,
         threadId: ctx.threadId || null,
-        agentRole: ctx.agentRoleChannel || null,
         inReplyTo: null,
         attachments: [],
         reactions: [],
         createdAt: now,
-      } as Record<string, unknown>,
+      },
     });
 
     ctx.onHandoff(targetAgent, ctx.threadId || null, ctx.agentRoleChannel || null, depth);

@@ -144,11 +144,14 @@ export class AgentRunner {
     this.io.emit('message:new', {
       message: {
         id: messageId,
-        senderType: 'agent',
+        senderType: 'agent' as const,
         senderName: agentRole,
         content: cleanOutput,
         taskId,
+        threadId: null,
         inReplyTo: null,
+        attachments: [],
+        reactions: [],
         createdAt: finishedAt,
       },
     });
@@ -260,12 +263,11 @@ export class AgentRunner {
         content: cleanOutput,
         taskId: null,
         threadId: threadId || null,
-        agentRole: agentRoleChannel || null,
         inReplyTo: null,
         attachments: [],
         reactions: [],
         createdAt: finishedAt,
-      } as Record<string, unknown>,
+      },
     });
 
     // Emit completed status

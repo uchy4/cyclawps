@@ -15,6 +15,7 @@ export interface AgentConfig {
   tools: string[];
   loggingEnabled: boolean;
   accentColor: string | null;
+  cooldown: number;
   isSeeded: boolean;
   createdAt: number;
   updatedAt: number;
@@ -32,6 +33,8 @@ export interface CreateAgentConfigInput {
   tools?: string[];
   loggingEnabled?: boolean;
   accentColor?: string;
+
+  cooldown?: number;
 }
 
 export interface UpdateAgentConfigInput {
@@ -45,6 +48,8 @@ export interface UpdateAgentConfigInput {
   tools?: string[];
   loggingEnabled?: boolean;
   accentColor?: string;
+
+  cooldown?: number;
 }
 
 export interface AgentRun {

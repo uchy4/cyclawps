@@ -34,6 +34,7 @@ export function ConfiguratorView() {
         title={editingRole ? 'Edit Agent' : 'New Agent'}
       >
         <AgentEditor
+          key={`${editingRole}-${refreshKey}`}
           editRole={editingRole}
           onSave={handleClose}
           onDelete={handleClose}

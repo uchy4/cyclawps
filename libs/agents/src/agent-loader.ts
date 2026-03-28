@@ -15,6 +15,7 @@ export function rowToAgentConfig(row: Record<string, unknown>): AgentConfig {
     tools: JSON.parse((row['tools'] as string) || '[]'),
     loggingEnabled: row['logging_enabled'] !== 0,
     accentColor: (row['accent_color'] as string) || null,
+    cooldown: (row['cooldown'] as number) || 5,
     isSeeded: Boolean(row['is_seeded']),
     createdAt: row['created_at'] as number,
     updatedAt: row['updated_at'] as number,

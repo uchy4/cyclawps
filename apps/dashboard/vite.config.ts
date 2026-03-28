@@ -75,8 +75,8 @@ export default defineConfig({
     port: 4000,
     headers: { 'Cache-Control': 'no-store' },
     proxy: {
-      '/api': 'http://localhost:3001',
-      '/socket.io': { target: 'http://localhost:3001', ws: true },
+      '/api': 'http://localhost:3000',
+      '/socket.io': { target: 'http://localhost:3000', ws: true },
     },
   },
   css: {

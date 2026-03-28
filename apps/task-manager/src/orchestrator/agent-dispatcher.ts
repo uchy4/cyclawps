@@ -1,6 +1,8 @@
+import { v4 as uuid } from 'uuid';
 import type Database from 'better-sqlite3';
 import type { Server } from 'socket.io';
 import type { ServerToClientEvents, ClientToServerEvents } from '@app/shared';
+import { loadAgentConfig } from '@app/agents';
 import type { AgentRunner } from './agent-runner.js';
 
 interface IncomingMessage {
@@ -90,20 +92,31 @@ export class AgentDispatcher {
       return;
     }
 
-    // 30s cooldown per agent per context
+    // Per-agent cooldown (from config, default 5s)
+    const agentConfig = loadAgentConfig(this.db, agentRole);
+    const cooldownMs = ((agentConfig?.cooldown ?? 5) * 1000);
     const cooldownKey = `${agentRole}:${threadId || agentRoleChannel || 'global'}`;
     const lastTime = this.lastInvocation.get(cooldownKey) || 0;
-    if (Date.now() - lastTime < 30_000) {
-      console.warn(`Cooldown active for ${agentRole}, skipping`);
+    const cooldownRemaining = cooldownMs - (Date.now() - lastTime);
+    if (cooldownRemaining > 0) {
+      console.log(`[dispatcher] Cooldown active for ${agentRole} (${Math.ceil(cooldownRemaining / 1000)}s remaining), scheduling retry`);
+      // Auto-retry after cooldown expires
+      setTimeout(() => {
+        console.log(`[dispatcher] Cooldown expired, auto-triggering ${agentRole}`);
+        this.invokeAgent(agentRole, threadId, agentRoleChannel, depth);
+      }, cooldownRemaining + 100);
       return;
     }
 
+    console.log(`[dispatcher] Queuing ${agentRole} invocation`);
     this.enqueue(agentRole, async () => {
       this.lastInvocation.set(cooldownKey, Date.now());
       try {
+        console.log(`[dispatcher] Starting ${agentRole} runForChat`);
         await this.runner.runForChat(agentRole, threadId, agentRoleChannel, depth);
+        console.log(`[dispatcher] Finished ${agentRole} runForChat`);
       } catch (err) {
-        console.error(`Agent ${agentRole} chat invocation failed:`, err);
+        console.error(`[dispatcher] Agent ${agentRole} chat invocation failed:`, err);
       }
     });
   }

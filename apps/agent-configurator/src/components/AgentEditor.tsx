@@ -51,6 +51,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
     maxTurns: 10,
     tools: ['Read', 'Glob', 'Grep'],
     accentColor: '',
+    cooldown: 5,
   });
 
   const { createAgent, updateAgent, getAgent, deleteAgent } = useAgents();
@@ -70,6 +71,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
             maxTurns: agent.maxTurns,
             tools: agent.tools,
             accentColor: agent.accentColor || ROLE_COLORS[agent.role] || '',
+            cooldown: agent.cooldown ?? 5,
           });
         }
       });
@@ -205,7 +207,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
               />
             )}
           </div>
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label htmlFor="api-key-env" className={labelClass}>API Key Env Var</label>
               <input id="api-key-env" name="apiKeyEnv" type="text" value={formData.apiKeyEnv || ''} onChange={(e) => updateField('apiKeyEnv', e.target.value)} placeholder={`AGENT_${(formData.role || 'ROLE').toUpperCase()}_API_KEY`} className={inputClass} />
@@ -213,6 +215,10 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
             <div>
               <label htmlFor="max-turns" className={labelClass}>Max Turns</label>
               <input id="max-turns" name="maxTurns" type="number" value={formData.maxTurns || 10} onChange={(e) => updateField('maxTurns', parseInt(e.target.value, 10) || 10)} min={1} max={100} className={inputClass} />
+            </div>
+            <div>
+              <label htmlFor="cooldown" className={labelClass}>Cooldown (sec)</label>
+              <input id="cooldown" name="cooldown" type="number" value={formData.cooldown ?? 5} onChange={(e) => updateField('cooldown', parseInt(e.target.value, 10) || 0)} min={0} max={300} className={inputClass} />
             </div>
           </div>
         </div>

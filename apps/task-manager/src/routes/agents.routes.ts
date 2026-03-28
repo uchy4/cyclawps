@@ -73,6 +73,7 @@ export function registerAgentRoutes(fastify: FastifyInstance): void {
     if (input.tools !== undefined) { fields.push('tools = ?'); values.push(JSON.stringify(input.tools)); }
     if (input.loggingEnabled !== undefined) { fields.push('logging_enabled = ?'); values.push(input.loggingEnabled ? 1 : 0); }
     if (input.accentColor !== undefined) { fields.push('accent_color = ?'); values.push(input.accentColor || null); }
+    if (input.cooldown !== undefined) { fields.push('cooldown = ?'); values.push(input.cooldown); }
 
     if (fields.length === 0) return reply.code(400).send({ error: 'No fields to update' });
 

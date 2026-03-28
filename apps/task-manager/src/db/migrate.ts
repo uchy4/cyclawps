@@ -131,5 +131,17 @@ export function runMigrations(db: Database.Database): void {
     db.exec('CREATE INDEX IF NOT EXISTS idx_agent_chat_archives_role ON agent_chat_archives(agent_role)');
   }
 
+  // Add cooldown column to agent_configs (seconds)
+  if (!columnExists(db, 'agent_configs', 'cooldown')) {
+    console.log('Adding cooldown column to agent_configs...');
+    db.exec('ALTER TABLE agent_configs ADD COLUMN cooldown INTEGER NOT NULL DEFAULT 5');
+  }
+
+  // Add use_direct_api column to agent_configs
+  if (!columnExists(db, 'agent_configs', 'use_direct_api')) {
+    console.log('Adding use_direct_api column to agent_configs...');
+    db.exec('ALTER TABLE agent_configs ADD COLUMN use_direct_api INTEGER NOT NULL DEFAULT 0');
+  }
+
   console.log('Migrations complete.');
 }
