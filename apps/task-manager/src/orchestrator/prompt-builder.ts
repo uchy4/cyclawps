@@ -2,6 +2,7 @@ import type Database from 'better-sqlite3';
 import type { AgentConfig } from '@app/shared';
 
 interface MessageRow {
+  id: string;
   sender_type: string;
   sender_name: string;
   content: string;
@@ -36,7 +37,7 @@ function loadConversationHistory(
   if (threadId) {
     return db
       .prepare(
-        'SELECT sender_type, sender_name, content, created_at FROM messages WHERE thread_id = ? ORDER BY created_at DESC LIMIT ?'
+        'SELECT id, sender_type, sender_name, content, created_at FROM messages WHERE thread_id = ? ORDER BY created_at DESC LIMIT ?'
       )
       .all(threadId, limit) as MessageRow[];
   }
@@ -44,7 +45,7 @@ function loadConversationHistory(
   if (agentRole) {
     return db
       .prepare(
-        'SELECT sender_type, sender_name, content, created_at FROM messages WHERE agent_role = ? ORDER BY created_at DESC LIMIT ?'
+        'SELECT id, sender_type, sender_name, content, created_at FROM messages WHERE agent_role = ? ORDER BY created_at DESC LIMIT ?'
       )
       .all(agentRole, limit) as MessageRow[];
   }
@@ -52,7 +53,7 @@ function loadConversationHistory(
   // Global chat — no filter
   return db
     .prepare(
-      'SELECT sender_type, sender_name, content, created_at FROM messages WHERE thread_id IS NULL AND agent_role IS NULL ORDER BY created_at DESC LIMIT ?'
+      'SELECT id, sender_type, sender_name, content, created_at FROM messages WHERE thread_id IS NULL AND agent_role IS NULL ORDER BY created_at DESC LIMIT ?'
     )
     .all(limit) as MessageRow[];
 }
@@ -66,7 +67,7 @@ function formatMessages(messages: MessageRow[]): string {
         hour: '2-digit',
         minute: '2-digit',
       });
-      return `[${m.sender_name}] ${time}: ${m.content}`;
+      return `[${m.sender_name}] ${time} (msg:${m.id}): ${m.content}`;
     })
     .join('\n');
 }
@@ -103,26 +104,33 @@ function formatTasks(tasks: TaskRow[]): string {
     .join('\n');
 }
 
-const DIRECTIVE_INSTRUCTIONS = `
-When you need to update tasks, write logs, create subtasks, or hand off to another agent, include a directive block at the END of your response in this exact format:
+const TOOL_LIST = `You have access to Cyclawps MCP tools for interacting with the system:
+- send_message: Send messages to threads or agent channels
+- react_to_message: React to a message with an emoji (requires the message ID, shown as msg:ID in conversation history)
+- read_messages: Read conversation history
+- read_tasks: List tasks from the kanban board
+- update_task: Change task status, assignment, or priority
+- create_task: Create new tasks
+- write_task_log: Log progress on tasks
+- handoff_to_agent: Hand off to another agent
+- read_agents: List available agents`;
 
-<!-- AGENT_DIRECTIVES
-{
-  "taskUpdates": [{ "taskGuid": "TASK-005", "status": "in_progress" }],
-  "logs": [{ "taskGuid": "TASK-005", "action": "Started implementation", "details": "Working on login flow", "status": "info" }],
-  "newTasks": [{ "title": "Write tests for login", "assignedAgent": "tester" }],
-  "handoff": { "targetAgent": "tester", "reason": "Implementation complete, ready for testing" }
+function loadGeneralInstructions(db: Database.Database): string {
+  const row = db
+    .prepare("SELECT value FROM app_settings WHERE key = 'general_agent_instructions'")
+    .get() as { value: string } | undefined;
+  return row?.value || '';
 }
--->
 
-Rules:
-- Only include the directives you need (all fields are optional)
-- taskGuid must match existing task GUIDs (format: TASK-NNN)
-- Valid statuses: todo, in_progress, done, blocked
-- Valid log statuses: info, success, error, warning
-- For handoff, targetAgent must be a valid agent role
-- Always explain what you did in natural language BEFORE the directive block
-`.trim();
+function buildToolAndInstructionsSection(db: Database.Database): string {
+  const parts: string[] = [TOOL_LIST];
+  const generalInstructions = loadGeneralInstructions(db);
+  if (generalInstructions.trim()) {
+    parts.push('');
+    parts.push(generalInstructions);
+  }
+  return parts.join('\n');
+}
 
 /**
  * Builds a prompt for chat-triggered agent invocations.
@@ -176,8 +184,8 @@ export function buildChatPrompt(
   }
 
   // Directive instructions
-  parts.push(`\n## Directives`);
-  parts.push(DIRECTIVE_INSTRUCTIONS);
+  parts.push(`\n## Available Tools & General Instructions`);
+  parts.push(buildToolAndInstructionsSection(db));
 
   return parts.join('\n');
 }
@@ -232,8 +240,8 @@ export function buildTaskPrompt(
   parts.push(formatAgentList(agents));
 
   // Directive instructions
-  parts.push(`\n## Directives`);
-  parts.push(DIRECTIVE_INSTRUCTIONS);
+  parts.push(`\n## Available Tools & General Instructions`);
+  parts.push(buildToolAndInstructionsSection(db));
 
   return parts.join('\n');
 }

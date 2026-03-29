@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { X, Plus, Check } from 'lucide-react';
 import type { AgentConfig, Task } from '@app/shared';
 import { ROLE_COLORS, formatRoleName } from '@app/shared';
+import { useAgents, useTasks, useCreateThread } from '../api/index.js';
 
 interface CreateThreadDialogProps {
   open: boolean;
@@ -11,22 +12,20 @@ interface CreateThreadDialogProps {
 
 export function CreateThreadDialog({ open, onClose }: CreateThreadDialogProps) {
   const [name, setName] = useState('');
-  const [agents, setAgents] = useState<AgentConfig[]>([]);
-  const [tasks, setTasks] = useState<Task[]>([]);
   const [selectedAgents, setSelectedAgents] = useState<Set<string>>(new Set());
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
-  const [creating, setCreating] = useState(false);
   const nameRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+
+  const { data: agents = [] } = useAgents();
+  const { data: tasks = [] } = useTasks();
+  const createThreadMutation = useCreateThread();
 
   useEffect(() => {
     if (!open) return;
     setName('');
     setSelectedAgents(new Set());
     setSelectedTasks(new Set());
-    setCreating(false);
-    fetch('/api/agents').then((r) => r.json()).then(setAgents).catch(() => {});
-    fetch('/api/tasks').then((r) => r.json()).then(setTasks).catch(() => {});
     setTimeout(() => nameRef.current?.focus(), 100);
   }, [open]);
 
@@ -50,27 +49,21 @@ export function CreateThreadDialog({ open, onClose }: CreateThreadDialogProps) {
     });
   };
 
-  const handleCreate = async () => {
-    if (!name.trim() || creating) return;
-    setCreating(true);
-    try {
-      const res = await fetch('/api/threads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: name.trim(),
-          participantRoles: [...selectedAgents],
-          taskIds: [...selectedTasks],
-        }),
-      });
-      if (res.ok) {
-        const thread = await res.json();
-        onClose();
-        navigate(`/chat/thread/${thread.id}`);
-      }
-    } finally {
-      setCreating(false);
-    }
+  const handleCreate = () => {
+    if (!name.trim() || createThreadMutation.isPending) return;
+    createThreadMutation.mutate(
+      {
+        name: name.trim(),
+        participantRoles: [...selectedAgents],
+        taskIds: [...selectedTasks],
+      },
+      {
+        onSuccess: (thread) => {
+          onClose();
+          navigate(`/chat/thread/${thread.id}`);
+        },
+      },
+    );
   };
 
   return (
@@ -166,14 +159,14 @@ export function CreateThreadDialog({ open, onClose }: CreateThreadDialogProps) {
           </button>
           <button
             onClick={handleCreate}
-            disabled={!name.trim() || creating}
+            disabled={!name.trim() || createThreadMutation.isPending}
             className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-              name.trim() && !creating
+              name.trim() && !createThreadMutation.isPending
                 ? 'bg-orange-500 text-white hover:bg-orange-600 cursor-pointer'
                 : 'bg-zinc-700 text-zinc-500 cursor-default'
             }`}
           >
-            {creating ? 'Creating...' : 'Create Thread'}
+            {createThreadMutation.isPending ? 'Creating...' : 'Create Thread'}
           </button>
         </div>
       </div>

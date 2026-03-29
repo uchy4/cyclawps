@@ -18,6 +18,18 @@
         "cwd": "apps/dashboard"
       },
       "cache": true
+    },
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "trap 'kill 0' SIGINT SIGTERM; unset ANTHROPIC_API_KEY; NX_DAEMON=false nx run-many --target=serve --projects=task-manager,dashboard,whisper-service --parallel & wait"
+      }
+    },
+    "kill-ports": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "for p in 3000 3001 4000 4001 4002 4200 4201 4202; do lsof -ti :$p 2>/dev/null; done | sort -u | xargs kill -9 2>/dev/null; echo 'All dev ports cleared'"
+      }
     }
   }
 }

@@ -135,4 +135,17 @@ CREATE TABLE IF NOT EXISTS agent_chat_archives (
   created_at INTEGER NOT NULL
 );
 CREATE INDEX IF NOT EXISTS idx_agent_chat_archives_role ON agent_chat_archives(agent_role);
+
+CREATE TABLE IF NOT EXISTS app_settings (
+  key TEXT PRIMARY KEY,
+  value TEXT NOT NULL DEFAULT '',
+  updated_at INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS read_markers (
+  id TEXT PRIMARY KEY,
+  scope_key TEXT NOT NULL UNIQUE,
+  last_read_message_id TEXT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+  updated_at INTEGER NOT NULL
+);
 `;

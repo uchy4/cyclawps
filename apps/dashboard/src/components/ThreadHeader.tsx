@@ -1,29 +1,39 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plus, X, Tag } from 'lucide-react';
-import type { Thread, AgentConfig, Task } from '@app/shared';
+import type { Thread, AgentConfig } from '@app/shared';
 import { ROLE_COLORS, formatRoleName } from '@app/shared';
-
-interface AgentInfo {
-  role: string;
-  name: string;
-  displayName: string | null;
-  accentColor: string | null;
-}
+import {
+  useAgents,
+  useTasks,
+  useUpdateThread,
+  useAddParticipant,
+  useRemoveParticipant,
+  useAddTaskTag,
+  useRemoveTaskTag,
+} from '../api/index.js';
 
 interface ThreadHeaderProps {
   thread: Thread;
-  agents: AgentInfo[];
-  onThreadUpdate: (thread: Thread) => void;
+  onThreadUpdate: (thread?: Thread) => void;
 }
 
-export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderProps) {
+export function ThreadHeader({ thread, onThreadUpdate }: ThreadHeaderProps) {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(thread.name);
   const [showAgentPicker, setShowAgentPicker] = useState(false);
   const [showTaskPicker, setShowTaskPicker] = useState(false);
-  const [allAgents, setAllAgents] = useState<AgentConfig[]>([]);
-  const [allTasks, setAllTasks] = useState<Task[]>([]);
   const nameInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: allAgents = [] } = useAgents();
+  const { data: allTasks = [] } = useTasks();
+  const updateThreadMutation = useUpdateThread();
+  const addParticipantMutation = useAddParticipant();
+  const removeParticipantMutation = useRemoveParticipant();
+  const addTaskTagMutation = useAddTaskTag();
+  const removeTaskTagMutation = useRemoveTaskTag();
+
+  // Derive agents list in the shape the parent expects
+  const agents: { role: string; name: string; displayName: string | null; accentColor: string | null }[] = allAgents;
 
   useEffect(() => {
     setNameValue(thread.name);
@@ -33,118 +43,78 @@ export function ThreadHeader({ thread, agents, onThreadUpdate }: ThreadHeaderPro
     if (editingName) nameInputRef.current?.focus();
   }, [editingName]);
 
-  // Fetch full agent list for picker
-  useEffect(() => {
-    if (!showAgentPicker) return;
-    fetch('/api/agents')
-      .then((r) => r.json())
-      .then(setAllAgents)
-      .catch(() => { /* ignore */ });
-  }, [showAgentPicker]);
-
-  // Fetch tasks for picker
-  useEffect(() => {
-    if (!showTaskPicker) return;
-    fetch('/api/tasks')
-      .then((r) => r.json())
-      .then(setAllTasks)
-      .catch(() => { /* ignore */ });
-  }, [showTaskPicker]);
-
-  const saveName = async () => {
+  const saveName = () => {
     setEditingName(false);
     if (nameValue.trim() && nameValue.trim() !== thread.name) {
-      const res = await fetch(`/api/threads/${thread.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: nameValue.trim() }),
-      });
-      if (res.ok) {
-        const updated = await res.json();
-        onThreadUpdate(updated);
-      }
+      updateThreadMutation.mutate(
+        { id: thread.id, name: nameValue.trim() },
+        { onSuccess: (updated) => onThreadUpdate(updated) },
+      );
     }
   };
 
-  const addParticipant = async (agentRole: string) => {
+  const addParticipant = (agentRole: string) => {
     setShowAgentPicker(false);
-    const res = await fetch(`/api/threads/${thread.id}/participants`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agentRole }),
-    });
-    if (res.ok) {
-      const participant = await res.json();
-      onThreadUpdate({
-        ...thread,
-        participants: [...thread.participants, participant],
-      });
-      const agent = agents.find((a) => a.role === agentRole);
-      const name = agent?.displayName || formatRoleName(agentRole);
-      fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `@${name} added to thread`, threadId: thread.id }),
-      });
-    }
+    const agent = agents.find((a) => a.role === agentRole);
+    const name = agent?.displayName || formatRoleName(agentRole);
+    addParticipantMutation.mutate(
+      { threadId: thread.id, agentRole, systemMessage: `@${name} added to thread` },
+      {
+        onSuccess: (participant) => {
+          onThreadUpdate({
+            ...thread,
+            participants: [...thread.participants, participant],
+          });
+        },
+      },
+    );
   };
 
-  const removeParticipant = async (agentRole: string) => {
-    const res = await fetch(`/api/threads/${thread.id}/participants/${agentRole}`, {
-      method: 'DELETE',
-    });
-    if (res.ok) {
-      onThreadUpdate({
-        ...thread,
-        participants: thread.participants.filter((p) => p.agentRole !== agentRole),
-      });
-      const agent = agents.find((a) => a.role === agentRole);
-      const name = agent?.displayName || formatRoleName(agentRole);
-      fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `@${name} removed from thread`, threadId: thread.id }),
-      });
-    }
+  const removeParticipant = (agentRole: string) => {
+    const agent = agents.find((a) => a.role === agentRole);
+    const name = agent?.displayName || formatRoleName(agentRole);
+    removeParticipantMutation.mutate(
+      { threadId: thread.id, agentRole, systemMessage: `@${name} removed from thread` },
+      {
+        onSuccess: () => {
+          onThreadUpdate({
+            ...thread,
+            participants: thread.participants.filter((p) => p.agentRole !== agentRole),
+          });
+        },
+      },
+    );
   };
 
-  const addTaskTag = async (taskId: string) => {
+  const addTaskTag = (taskId: string) => {
     setShowTaskPicker(false);
-    const res = await fetch(`/api/threads/${thread.id}/tasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId }),
-    });
-    if (res.ok) {
-      const tag = await res.json();
-      onThreadUpdate({
-        ...thread,
-        taskTags: [...thread.taskTags, tag],
-      });
-      fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `#${tag.taskGuid} added to thread`, threadId: thread.id }),
-      });
-    }
+    const task = allTasks.find((t) => t.id === taskId);
+    addTaskTagMutation.mutate(
+      { threadId: thread.id, taskId, systemMessage: `#${task?.guid || 'task'} added to thread` },
+      {
+        onSuccess: (tag) => {
+          onThreadUpdate({
+            ...thread,
+            taskTags: [...thread.taskTags, tag],
+          });
+        },
+      },
+    );
   };
 
-  const removeTaskTag = async (taskId: string) => {
+  const removeTaskTag = (taskId: string) => {
     const tag = thread.taskTags.find((t) => t.taskId === taskId);
-    const res = await fetch(`/api/threads/${thread.id}/tasks/${taskId}`, {
-      method: 'DELETE',
-    });
-    if (res.ok) {
-      onThreadUpdate({
-        ...thread,
-        taskTags: thread.taskTags.filter((t) => t.taskId !== taskId),
-      });
-      fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `#${tag?.taskGuid || 'task'} removed from thread`, threadId: thread.id }),
-      });
-    }
+    removeTaskTagMutation.mutate(
+      { threadId: thread.id, taskId, systemMessage: `#${tag?.taskGuid || 'task'} removed from thread` },
+      {
+        onSuccess: () => {
+          onThreadUpdate({
+            ...thread,
+            taskTags: thread.taskTags.filter((t) => t.taskId !== taskId),
+          });
+        },
+      },
+    );
   };
 
   const participantRoles = new Set((thread.participants || []).map((p) => p.agentRole));

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { ErrorBoundary } from '@app/shared';
 import { Header } from './components/Header.js';
-import { Sidebar, ChatSubSidebar } from './components/Sidebar.js';
+import { Sidebar } from './components/Sidebar.js';
+import { ChatSubSidebar } from './components/ChatSubSidebar.js';
 import { KanbanView } from './views/KanbanView.js';
 import { ChatView } from './views/ChatView.js';
 import { ConfiguratorView } from './views/ConfiguratorView.js';
@@ -21,15 +23,17 @@ export function App() {
           <Sidebar collapsed={collapsed} />
           <ChatSubSidebar />
           <main className="flex-1 overflow-hidden">
-            <Routes>
-              <Route path="/" element={<Navigate to="/kanban" replace />} />
-              <Route path="/kanban" element={<KanbanView />} />
-              <Route path="/kanban/:guid" element={<KanbanView />} />
-              <Route path="/chat" element={<ChatView />} />
-              <Route path="/chat/thread/:threadId" element={<ChatView />} />
-              <Route path="/chat/agent/:agentRole" element={<ChatView />} />
-              <Route path="/configurator" element={<ConfiguratorView />} />
-            </Routes>
+            <ErrorBoundary>
+              <Routes>
+                <Route path="/" element={<Navigate to="/kanban" replace />} />
+                <Route path="/kanban" element={<ErrorBoundary><KanbanView /></ErrorBoundary>} />
+                <Route path="/kanban/:guid" element={<ErrorBoundary><KanbanView /></ErrorBoundary>} />
+                <Route path="/chat" element={<ErrorBoundary><ChatView /></ErrorBoundary>} />
+                <Route path="/chat/thread/:threadId" element={<ErrorBoundary><ChatView /></ErrorBoundary>} />
+                <Route path="/chat/agent/:agentRole" element={<ErrorBoundary><ChatView /></ErrorBoundary>} />
+                <Route path="/configurator" element={<ErrorBoundary><ConfiguratorView /></ErrorBoundary>} />
+              </Routes>
+            </ErrorBoundary>
           </main>
           </div>
         </div>

@@ -1,24 +1,16 @@
 import { useLocation } from 'react-router-dom';
 import { useSocket } from '@app/shared';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import type { Task } from '@app/shared';
+import { useTask } from '../api/index.js';
 
 function usePageTitle(): string {
   const location = useLocation();
   const path = location.pathname;
-  const [task, setTask] = useState<Task | null>(null);
 
   const taskMatch = path.match(/^\/chat\/task\/(.+)$/);
   const taskId = taskMatch?.[1] || null;
 
-  useEffect(() => {
-    if (!taskId) { setTask(null); return; }
-    fetch(`/api/tasks/${taskId}`)
-      .then(r => r.json())
-      .then(data => setTask(data))
-      .catch(() => setTask(null));
-  }, [taskId]);
+  const { data: task } = useTask(taskId);
 
   if (taskId && task) return `${task.guid} — ${task.title}`;
   if (taskId) return 'Thread';

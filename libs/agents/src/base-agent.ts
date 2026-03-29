@@ -1,11 +1,68 @@
-import { spawn } from 'child_process';
+import { spawn, type ChildProcess } from 'child_process';
 import { createInterface } from 'readline';
+import { fileURLToPath } from 'url';
+import path from 'path';
 import type { AgentConfig, AgentRunStatus } from '@app/shared';
+
+// Resolve __dirname for ESM (tsx runs TypeScript as ESM)
+const __filename = fileURLToPath(import.meta.url);
+const __agentDir = path.dirname(__filename);
+
+/** Tracks all spawned agent child processes for graceful shutdown. */
+const activeChildren = new Set<ChildProcess>();
+
+/**
+ * Kills all active agent child processes.
+ * Sends SIGTERM first, escalates to SIGKILL after 3 seconds.
+ */
+export function killAllAgentProcesses(): Promise<void> {
+  if (activeChildren.size === 0) return Promise.resolve();
+
+  console.log(`[agents] Killing ${activeChildren.size} active agent process(es)...`);
+
+  return new Promise((resolve) => {
+    let remaining = activeChildren.size;
+    if (remaining === 0) { resolve(); return; }
+
+    const forceKillTimer = setTimeout(() => {
+      for (const child of activeChildren) {
+        if (!child.killed) {
+          child.kill('SIGKILL');
+        }
+      }
+      resolve();
+    }, 3000);
+
+    for (const child of activeChildren) {
+      child.once('exit', () => {
+        remaining--;
+        if (remaining === 0) {
+          clearTimeout(forceKillTimer);
+          resolve();
+        }
+      });
+      child.kill('SIGTERM');
+    }
+  });
+}
+
+export interface McpContext {
+  /** Base URL of the task-manager API */
+  apiUrl?: string;
+  /** The agent role */
+  agentRole: string;
+  /** Thread ID context */
+  threadId?: string | null;
+  /** Agent channel context */
+  agentRoleChannel?: string | null;
+}
 
 export interface InvokeAgentOptions {
   config: AgentConfig;
   prompt: string;
   cwd?: string;
+  /** MCP context for connecting agents to chat/task tools */
+  mcpContext?: McpContext;
   onStream?: (chunk: string) => void;
   onStatusChange?: (status: AgentRunStatus) => void;
 }
@@ -17,6 +74,33 @@ export interface AgentResult {
   authExpired?: boolean;
   tokensUsed?: number;
   sessionId?: string;
+}
+
+/**
+ * Builds the --mcp-config JSON string for the CLI.
+ * Points to our stdio MCP server script with context env vars.
+ */
+function buildMcpConfig(mcpContext: McpContext): string {
+  // Path to the stdio MCP server source — resolve relative to this file,
+  // not process.cwd(), since cwd varies depending on where nx launches from.
+  const mcpServerPath = path.resolve(__agentDir, 'cyclawps-mcp-stdio.ts');
+
+  const config = {
+    mcpServers: {
+      cyclawps: {
+        command: 'npx',
+        args: ['tsx', mcpServerPath],
+        env: {
+          CYCLAWPS_API_URL: mcpContext.apiUrl || 'http://localhost:3000',
+          CYCLAWPS_AGENT_ROLE: mcpContext.agentRole,
+          ...(mcpContext.threadId ? { CYCLAWPS_THREAD_ID: mcpContext.threadId } : {}),
+          ...(mcpContext.agentRoleChannel ? { CYCLAWPS_AGENT_CHANNEL: mcpContext.agentRoleChannel } : {}),
+        },
+      },
+    },
+  };
+
+  return JSON.stringify(config);
 }
 
 /**
@@ -43,6 +127,8 @@ function runCli(
       stdio: ['pipe', 'pipe', 'pipe'],
     });
 
+    activeChildren.add(child);
+
     child.stdin!.write(prompt);
     child.stdin!.end();
 
@@ -67,7 +153,6 @@ function runCli(
           }
         }
       } catch {
-        // Not JSON — raw text output
         if (line.trim()) {
           collectedOutput.push(line);
           onStream?.(line);
@@ -80,9 +165,9 @@ function runCli(
     });
 
     child.on('close', (code) => {
+      activeChildren.delete(child);
       const output = collectedOutput.join('\n');
 
-      // Detect expired OAuth token
       const authExpired = output.includes('OAuth token has expired')
         || output.includes('authentication_error')
         || stderrOutput.includes('OAuth token has expired');
@@ -97,6 +182,7 @@ function runCli(
     });
 
     child.on('error', (err) => {
+      activeChildren.delete(child);
       console.error(`[agent:${role}] Spawn error:`, err.message);
       resolve({ success: false, output: `Agent spawn failed: ${err.message}` });
     });
@@ -104,8 +190,7 @@ function runCli(
 }
 
 /**
- * Attempts to refresh the CLI's OAuth token by running `claude /login --headless`.
- * Returns true if refresh succeeded.
+ * Attempts to refresh the CLI's OAuth token.
  */
 async function tryRefreshAuth(): Promise<boolean> {
   return new Promise((resolve) => {
@@ -114,10 +199,6 @@ async function tryRefreshAuth(): Promise<boolean> {
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 15000,
     });
-
-    let output = '';
-    child.stdout?.on('data', (d) => { output += d.toString(); });
-    child.stderr?.on('data', (d) => { output += d.toString(); });
 
     child.on('close', (code) => {
       if (code === 0) {
@@ -135,11 +216,11 @@ async function tryRefreshAuth(): Promise<boolean> {
 
 /**
  * Invokes an agent by spawning the `claude` CLI.
- * Uses the CLI's keychain-stored OAuth credentials.
+ * Passes MCP config so agents can interact with chat and the task board.
  * Retries once on auth expiry after attempting a token refresh.
  */
 export async function invokeAgent(options: InvokeAgentOptions): Promise<AgentResult> {
-  const { config, prompt, cwd, onStream, onStatusChange } = options;
+  const { config, prompt, cwd, mcpContext, onStream, onStatusChange } = options;
 
   const envModelKey = `AGENT_${config.role.toUpperCase()}_MODEL`;
   const model = process.env[envModelKey] || config.model;
@@ -163,8 +244,35 @@ export async function invokeAgent(options: InvokeAgentOptions): Promise<AgentRes
     args.push('--system-prompt', config.systemPrompt);
   }
 
-  if (config.tools?.length) {
-    args.push('--allowedTools', config.tools.join(','));
+  // Pass MCP config so agents can use chat/task tools
+  if (mcpContext) {
+    args.push('--mcp-config', buildMcpConfig(mcpContext));
+  }
+
+  // Build the allowed tools list. MCP tools must always be included when
+  // an MCP context is present — otherwise --allowedTools blocks them entirely.
+  // Use "mcp__cyclawps" (server-level prefix) to allow ALL tools from the server.
+  const allTools = [
+    ...(config.tools || []),
+    ...(mcpContext
+      ? [
+          'mcp__cyclawps__send_message',
+          'mcp__cyclawps__react_to_message',
+          'mcp__cyclawps__read_messages',
+          'mcp__cyclawps__update_task',
+          'mcp__cyclawps__read_tasks',
+          'mcp__cyclawps__create_task',
+          'mcp__cyclawps__write_task_log',
+          'mcp__cyclawps__handoff_to_agent',
+          'mcp__cyclawps__read_agents',
+        ]
+      : []),
+  ];
+
+  console.log(`[agent:${config.role}] allowedTools: ${allTools.join(', ')}`);
+
+  if (allTools.length) {
+    args.push('--allowedTools', allTools.join(','));
   }
 
   const workingDir = cwd || process.cwd();

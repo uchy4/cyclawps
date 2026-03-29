@@ -4,26 +4,32 @@ import {
   useMessages,
   type PendingAuth,
 } from '@app/chat/hooks/useMessages';
+import { useReadMarker } from '@app/chat/hooks/useReadMarker';
 import { MessageBubble } from '@app/chat/components/MessageBubble';
+import { MessageSkeleton } from '@app/chat/components/MessageSkeleton';
 import { AuthorizationBanner } from '@app/chat/components/AuthorizationBanner';
 import { Mic, Send, Loader2, X, Square, Paperclip, AtSign, Hash } from 'lucide-react';
 import { useWhisper } from '../hooks/useWhisper.js';
 import { useAudioDevices } from '../hooks/useAudioDevices.js';
 import { MicSelector } from '../components/MicSelector.js';
-import type { Message, Attachment, Thread } from '@app/shared';
+import type { Message, Attachment, AgentConfig, Thread } from '@app/shared';
 import { ROLE_COLORS, Modal } from '@app/shared';
 import { ThreadHeader } from '../components/ThreadHeader.js';
 import { AgentChatHeader } from '../components/AgentChatHeader.js';
 import { ChatEditor, type ChatEditorHandle } from '../components/ChatEditor.js';
 import { AgentTypingIndicator } from '../components/AgentTypingIndicator.js';
 import { useAgentStatus } from '../hooks/useAgentStatus.js';
-
-interface AgentInfo {
-  role: string;
-  name: string;
-  displayName: string | null;
-  accentColor: string | null;
-}
+import {
+  useAgents,
+  useTasks,
+  useThread,
+  useAgentArchives,
+  useCreateArchive,
+  useRestoreArchive,
+  useDeleteArchive,
+  useAddParticipant,
+  useAddTaskTag,
+} from '../api/index.js';
 
 const MIN_BAR_H = 4;
 const MAX_BAR_H = 64;
@@ -45,15 +51,26 @@ export function ChatView() {
     toggleReaction,
     authorize,
     refreshMessages,
+    loadOlder,
+    hasOlder,
+    loadingOlder,
   } = useMessages(threadId, agentRole);
-  const [thread, setThread] = useState<Thread | null>(null);
+  const { data: thread, refetch: refetchThread } = useThread(threadId);
+  const { data: agents = [] } = useAgents();
+  const { data: tasks = [] } = useTasks();
+  const { data: archives = [] } = useAgentArchives(agentRole);
+
+  const { lastReadMessageId, loaded: readMarkerLoaded, markAsRead } = useReadMarker(threadId, agentRole);
+  const dividerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
   const editorRef = useRef<ChatEditorHandle>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [hasNewBelow, setHasNewBelow] = useState(false);
+  const justSentRef = useRef(false);
+  const isNearBottomRef = useRef(true);
   const [replyTo, setReplyTo] = useState<Message | null>(null);
   const [attachments, setAttachments] = useState<Attachment[]>([]);
-  const [agents, setAgents] = useState<AgentInfo[]>([]);
-  const [tasks, setTasks] = useState<{ id: string; guid: string; title: string }[]>([]);
   const [pickerType, setPickerType] = useState<'agent' | 'task' | null>(null);
   const [pickerQuery, setPickerQuery] = useState('');
   const [pickerIndex, setPickerIndex] = useState(0);
@@ -64,21 +81,17 @@ export function ChatView() {
     setSelectedDeviceId,
   } = useAudioDevices();
   const whisper = useWhisper(selectedDeviceId);
-  const [archives, setArchives] = useState<{ id: string; agentRole: string; name: string; messageCount: number; createdAt: number }[]>([]);
   const [archiveModalOpen, setArchiveModalOpen] = useState(false);
   const [archiveName, setArchiveName] = useState('');
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<string | null>(null);
   const { activities: agentActivities } = useAgentStatus();
 
-  // Fetch archives for agent chat
-  useEffect(() => {
-    if (!agentRole) { setArchives([]); return; }
-    fetch(`/api/agent-archives/${agentRole}`)
-      .then((r) => r.json())
-      .then((data) => setArchives(data))
-      .catch(() => {});
-  }, [agentRole]);
+  const createArchiveMutation = useCreateArchive();
+  const restoreArchiveMutation = useRestoreArchive();
+  const deleteArchiveMutation = useDeleteArchive();
+  const addParticipantMutation = useAddParticipant();
+  const addTaskTagMutation = useAddTaskTag();
 
   const handleArchive = useCallback(() => {
     if (!agentRole) return;
@@ -89,68 +102,24 @@ export function ChatView() {
   const confirmArchive = useCallback(() => {
     if (!agentRole || !archiveName.trim()) return;
     setArchiveModalOpen(false);
-    fetch(`/api/agent-archives/${agentRole}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name: archiveName.trim() }),
-    })
-      .then((r) => r.json())
-      .then((result) => {
-        if (result.id) {
-          setArchives((prev) => [{ id: result.id, agentRole, name: result.name, messageCount: result.messageCount, createdAt: result.createdAt }, ...prev]);
-          refreshMessages();
-        }
-      })
-      .catch((err) => console.error('Archive failed:', err));
-  }, [agentRole, archiveName, refreshMessages]);
+    createArchiveMutation.mutate(
+      { role: agentRole, name: archiveName.trim() },
+      { onSuccess: () => refreshMessages() },
+    );
+  }, [agentRole, archiveName, refreshMessages, createArchiveMutation]);
 
   const handleRestore = useCallback((archiveId: string) => {
     if (!agentRole) return;
-    fetch(`/api/agent-archives/${agentRole}/${archiveId}/restore`, { method: 'POST' })
-      .then((r) => r.json())
-      .then(() => {
-        // Re-fetch archives list and messages
-        fetch(`/api/agent-archives/${agentRole}`)
-          .then(r => r.json())
-          .then(data => setArchives(data))
-          .catch(() => {});
-        refreshMessages();
-      })
-      .catch(() => {});
-  }, [agentRole, refreshMessages]);
+    restoreArchiveMutation.mutate(
+      { role: agentRole, archiveId },
+      { onSuccess: () => refreshMessages() },
+    );
+  }, [agentRole, refreshMessages, restoreArchiveMutation]);
 
   const handleDeleteArchive = useCallback((archiveId: string) => {
     if (!agentRole) return;
-    fetch(`/api/agent-archives/${agentRole}/${archiveId}`, { method: 'DELETE' })
-      .then(() => {
-        setArchives((prev) => prev.filter((a) => a.id !== archiveId));
-      })
-      .catch(() => {});
-  }, [agentRole]);
-
-  // Fetch agents and tasks for mention popups
-  useEffect(() => {
-    fetch('/api/agents')
-      .then((r) => r.json())
-      .then((data) => setAgents(data))
-      .catch(() => {});
-    fetch('/api/tasks')
-      .then((r) => r.json())
-      .then((data: { id: string; guid: string; title: string }[]) => setTasks(data))
-      .catch(() => {});
-  }, []);
-
-  // Fetch thread details when threadId changes
-  useEffect(() => {
-    if (!threadId) {
-      setThread(null);
-      return;
-    }
-    fetch(`/api/threads/${threadId}`)
-      .then((r) => r.json())
-      .then((data) => setThread(data))
-      .catch(() => setThread(null));
-  }, [threadId]);
+    deleteArchiveMutation.mutate({ role: agentRole, archiveId });
+  }, [agentRole, deleteArchiveMutation]);
 
   // Build mention color map: role keys + display names → accent color
   const mentionColors = useMemo(() => {
@@ -165,13 +134,144 @@ export function ChatView() {
     return map;
   }, [agents]);
 
+  // --- Scroll & read-marker logic ---
+  const hasScrolledToMarker = useRef(false);
   const prevMessageCount = useRef(0);
+
+  // On initial load: scroll to bottom as soon as messages arrive (don't wait for read marker)
+  const hasScrolledInitial = useRef(false);
   useEffect(() => {
+    if (loading || messages.length === 0) return;
+    if (hasScrolledInitial.current) return;
+    hasScrolledInitial.current = true;
+
+    // Scroll to bottom immediately so there's no flash of unscrolled content
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+    });
+    prevMessageCount.current = messages.length;
+  }, [loading, messages.length]);
+
+  // Once the read marker loads, adjust scroll to the divider if one appeared
+  useEffect(() => {
+    if (!readMarkerLoaded || loading || messages.length === 0) return;
+    if (hasScrolledToMarker.current) return;
+    hasScrolledToMarker.current = true;
+
+    requestAnimationFrame(() => {
+      if (dividerRef.current) {
+        dividerRef.current.scrollIntoView({ behavior: 'instant', block: 'center' });
+        setHasNewBelow(true);
+      }
+      // If no divider, we already scrolled to bottom above — nothing to do
+    });
+  }, [readMarkerLoaded, loading, messages.length]);
+
+  // Continuously track scroll position + load older messages on scroll to top
+  const isLoadingOlderRef = useRef(false);
+  useEffect(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      const nearBottom = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+      isNearBottomRef.current = nearBottom;
+      if (nearBottom && hasNewBelow) {
+        setHasNewBelow(false);
+      }
+
+      // Load older messages when scrolled near the top
+      if (container.scrollTop < 200 && hasOlder && !isLoadingOlderRef.current) {
+        isLoadingOlderRef.current = true;
+        const prevScrollHeight = container.scrollHeight;
+        loadOlder().then(() => {
+          // Preserve scroll position after prepending older messages
+          requestAnimationFrame(() => {
+            const newScrollHeight = container.scrollHeight;
+            container.scrollTop += newScrollHeight - prevScrollHeight;
+            isLoadingOlderRef.current = false;
+          });
+        });
+      }
+    };
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [hasNewBelow, hasOlder, loadOlder]);
+
+  // When new messages arrive after initial load
+  useEffect(() => {
+    if (!hasScrolledToMarker.current) return;
     if (messages.length > prevMessageCount.current) {
-      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+      if (justSentRef.current || isNearBottomRef.current) {
+        // User sent the message or was already at bottom — auto-scroll
+        justSentRef.current = false;
+        requestAnimationFrame(() => {
+          messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+        });
+      } else {
+        setHasNewBelow(true);
+      }
     }
     prevMessageCount.current = messages.length;
   }, [messages.length]);
+
+  // Scroll to bottom when an agent starts thinking
+  const prevActivityCount = useRef(0);
+  useEffect(() => {
+    const count = agentActivities.size;
+    if (count > prevActivityCount.current) {
+      setHasNewBelow(false);
+      requestAnimationFrame(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+      });
+    }
+    prevActivityCount.current = count;
+  }, [agentActivities]);
+
+  // Reset scroll tracking on scope change
+  useEffect(() => {
+    hasScrolledInitial.current = false;
+    hasScrolledToMarker.current = false;
+    setHasNewBelow(false);
+    justSentRef.current = false;
+  }, [threadId, agentRole]);
+
+  // Mark as read on navigate away (scope change or unmount)
+  const latestMessageIdRef = useRef<string | null>(null);
+  useEffect(() => {
+    latestMessageIdRef.current = messages.length > 0 ? messages[messages.length - 1].id : null;
+  }, [messages]);
+
+  useEffect(() => {
+    return () => {
+      if (latestMessageIdRef.current) {
+        markAsRead(latestMessageIdRef.current);
+      }
+    };
+  }, [threadId, agentRole, markAsRead]);
+
+  // Also mark as read on page unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (latestMessageIdRef.current) {
+        const key = threadId ? `thread:${threadId}` : agentRole ? `agent:${agentRole}` : 'global';
+        navigator.sendBeacon(
+          `/api/read-markers/${encodeURIComponent(key)}`,
+          new Blob([JSON.stringify({ lastReadMessageId: latestMessageIdRef.current })], { type: 'application/json' })
+        );
+      }
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [threadId, agentRole]);
+
+  const scrollToNewMessages = useCallback(() => {
+    if (dividerRef.current) {
+      dividerRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+    setHasNewBelow(false);
+  }, []);
 
   // Clear reply when switching threads/agents
   useEffect(() => {
@@ -197,6 +297,7 @@ export function ChatView() {
 
   const handleEditorSubmit = useCallback((text: string) => {
     if (!text.trim() && attachments.length === 0) return;
+    justSentRef.current = true;
     sendMessage(
       text.trim(),
       threadId,
@@ -206,50 +307,33 @@ export function ChatView() {
     );
     setReplyTo(null);
     setAttachments([]);
+    setHasNewBelow(false);
+    requestAnimationFrame(() => {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+    });
   }, [sendMessage, threadId, replyTo, attachments, agentRole]);
 
-  const handleTaskMentioned = useCallback(async (task: { id: string; guid: string }) => {
+  const handleTaskMentioned = useCallback((task: { id: string; guid: string }) => {
     if (!threadId || !thread) return;
     const alreadyTagged = (thread.taskTags || []).some((t) => t.taskId === task.id);
     if (alreadyTagged) return;
-    const res = await fetch(`/api/threads/${threadId}/tasks`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ taskId: task.id }),
-    });
-    if (res.ok) {
-      const tag = await res.json();
-      setThread((prev) => prev ? { ...prev, taskTags: [...prev.taskTags, tag] } : prev);
-      // Post system message about the tag
-      fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `#${task.guid} added to thread`, threadId }),
-      });
-    }
-  }, [threadId, thread]);
+    addTaskTagMutation.mutate(
+      { threadId, taskId: task.id, systemMessage: `#${task.guid} added to thread` },
+      { onSuccess: () => refetchThread() },
+    );
+  }, [threadId, thread, addTaskTagMutation, refetchThread]);
 
-  const handleAgentMentioned = useCallback(async (mentionedRole: string) => {
+  const handleAgentMentioned = useCallback((mentionedRole: string) => {
     if (!threadId || !thread) return;
     const alreadyAdded = (thread.participants || []).some((p) => p.agentRole === mentionedRole);
     if (alreadyAdded) return;
-    const res = await fetch(`/api/threads/${threadId}/participants`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ agentRole: mentionedRole }),
-    });
-    if (res.ok) {
-      const participant = await res.json();
-      setThread((prev) => prev ? { ...prev, participants: [...prev.participants, participant] } : prev);
-      const agent = agents.find((a) => a.role === mentionedRole);
-      const name = agent?.displayName || agent?.name || mentionedRole;
-      fetch('/api/messages', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ senderType: 'system', senderName: 'system', content: `@${name} added to thread`, threadId }),
-      });
-    }
-  }, [threadId, thread, agents]);
+    const agent = agents.find((a) => a.role === mentionedRole);
+    const name = agent?.displayName || agent?.name || mentionedRole;
+    addParticipantMutation.mutate(
+      { threadId, agentRole: mentionedRole, systemMessage: `@${name} added to thread` },
+      { onSuccess: () => refetchThread() },
+    );
+  }, [threadId, thread, agents, addParticipantMutation, refetchThread]);
 
   const pendingTranscript = useRef<string | null>(null);
 
@@ -339,7 +423,7 @@ export function ChatView() {
 
       {/* Thread header */}
       {threadId && thread && (
-        <ThreadHeader thread={thread} agents={agents} onThreadUpdate={setThread} />
+        <ThreadHeader thread={thread} onThreadUpdate={() => { refetchThread(); }} />
       )}
 
       {/* Agent chat header */}
@@ -356,18 +440,15 @@ export function ChatView() {
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-auto px-8 py-4">
+      <div ref={messagesContainerRef} className="flex-1 overflow-auto px-8 py-4 relative">
       <div className="max-w-4xl mx-auto w-full">
-        {loading && (
-          <div className="text-zinc-400 animate-pulse">
-            Loading messages...
-          </div>
-        )}
+        {loading && <MessageSkeleton count={6} />}
         {!loading && messages.length === 0 && (
           <div className="flex items-center justify-center h-full text-zinc-500 text-sm">
             No messages yet. Start a conversation.
           </div>
         )}
+        {loadingOlder && <MessageSkeleton count={3} />}
         {messages.map((msg, idx) => {
           const agentData = agents.find((a) => a.role === msg.senderName);
           const prev = idx > 0 ? messages[idx - 1] : null;
@@ -386,33 +467,53 @@ export function ChatView() {
           const replyAgentData = replyTarget
             ? agents.find((a) => a.role === replyTarget.senderName)
             : null;
+
+          // Show "New messages" divider after the last-read message
+          const showDivider =
+            lastReadMessageId &&
+            prev?.id === lastReadMessageId &&
+            msg.id !== lastReadMessageId;
+
           return (
-            <div
-              key={msg.id}
-              data-message-id={msg.id}
-              className="transition-colors duration-500 rounded-lg"
-            >
-              <MessageBubble
-                message={msg}
-                replyTarget={replyTarget}
-                onReact={toggleReaction}
-                onReply={handleReply}
-                onEdit={handleEdit}
-                onDelete={(id) => { setDeleteTargetId(id); setDeleteModalOpen(true); }}
-                onScrollToMessage={scrollToMessage}
-                accentColor={agentData?.accentColor || undefined}
-                displayName={
-                  agentData?.displayName || agentData?.name || undefined
-                }
-                replyDisplayName={
-                  replyAgentData?.displayName ||
-                  replyAgentData?.name ||
-                  undefined
-                }
-                isConsecutive={isConsecutive}
-                isLastInGroup={!nextIsConsecutive}
-                mentionColors={mentionColors}
-              />
+            <div key={msg.id}>
+              {showDivider && (
+                <div
+                  ref={dividerRef}
+                  className="flex items-center gap-3 py-3 px-2"
+                >
+                  <div className="flex-1 h-px bg-orange-500/40" />
+                  <span className="text-[11px] font-medium text-orange-400/70 whitespace-nowrap uppercase tracking-wider">
+                    New messages
+                  </span>
+                  <div className="flex-1 h-px bg-orange-500/40" />
+                </div>
+              )}
+              <div
+                data-message-id={msg.id}
+                className="transition-colors duration-500 rounded-lg"
+              >
+                <MessageBubble
+                  message={msg}
+                  replyTarget={replyTarget}
+                  onReact={toggleReaction}
+                  onReply={handleReply}
+                  onEdit={handleEdit}
+                  onDelete={(id) => { setDeleteTargetId(id); setDeleteModalOpen(true); }}
+                  onScrollToMessage={scrollToMessage}
+                  accentColor={agentData?.accentColor || undefined}
+                  displayName={
+                    agentData?.displayName || agentData?.name || undefined
+                  }
+                  replyDisplayName={
+                    replyAgentData?.displayName ||
+                    replyAgentData?.name ||
+                    undefined
+                  }
+                  isConsecutive={isConsecutive}
+                  isLastInGroup={!nextIsConsecutive}
+                  mentionColors={mentionColors}
+                />
+              </div>
             </div>
           );
         })}
@@ -424,6 +525,16 @@ export function ChatView() {
         />
         <div ref={messagesEndRef} />
       </div>
+
+      {/* Floating "New messages" button */}
+      {hasNewBelow && (
+        <button
+          onClick={scrollToNewMessages}
+          className="sticky bottom-3 left-1/2 -translate-x-1/2 z-10 px-4 py-1.5 rounded-full bg-orange-600 text-white text-xs font-medium shadow-lg hover:bg-orange-500 transition-colors cursor-pointer"
+        >
+          ↓ New messages
+        </button>
+      )}
       </div>
 
       {/* Reply banner */}
@@ -488,7 +599,7 @@ export function ChatView() {
           onIndexChange={setPickerIndex}
           onSelect={(item) => {
             if (pickerType === 'agent') {
-              const agent = item as AgentInfo;
+              const agent = item as AgentConfig;
               editorRef.current?.insertAgentMention(agent.role, (agent.displayName || agent.name).replace(/\s+/g, '_'));
               handleAgentMentioned(agent.role);
             } else {
@@ -754,14 +865,14 @@ export function ChatView() {
 
 interface PickerPopoverProps {
   type: 'agent' | 'task';
-  agents: AgentInfo[];
+  agents: AgentConfig[];
   tasks: { id: string; guid: string; title: string }[];
   mentionColors: Record<string, string>;
   query: string;
   selectedIndex: number;
   onQueryChange: (q: string) => void;
   onIndexChange: (i: number) => void;
-  onSelect: (item: AgentInfo | { id: string; guid: string; title: string }) => void;
+  onSelect: (item: AgentConfig | { id: string; guid: string; title: string }) => void;
   onClose: () => void;
   inputRef: React.RefObject<HTMLInputElement | null>;
 }
@@ -815,7 +926,7 @@ function PickerPopover({ type, agents, tasks, mentionColors, query, selectedInde
             <div className="px-3 py-2 text-xs text-zinc-500">No results</div>
           )}
           {type === 'agent'
-            ? (items as AgentInfo[]).map((agent, i) => {
+            ? (items as AgentConfig[]).map((agent, i) => {
                 const color = agent.accentColor || mentionColors[agent.role] || '#8b949e';
                 return (
                   <button

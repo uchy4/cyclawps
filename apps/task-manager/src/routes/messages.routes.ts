@@ -49,11 +49,12 @@ export function registerMessageRoutes(fastify: FastifyInstance): void {
   const io = fastify.io;
 
   // List messages
+  // Supports cursor-based pagination via `before` (message ID) for loading older messages.
+  // Without `before`, returns the N most recent messages (newest-last).
   fastify.get('/api/messages', async (request) => {
-    const { task_id, thread_id, agent_role, limit = '100', offset = '0' } = request.query as Record<string, string>;
-    let sql = 'SELECT * FROM messages';
-    const params: unknown[] = [];
+    const { task_id, thread_id, agent_role, limit = '100', offset = '0', before } = request.query as Record<string, string>;
     const conditions: string[] = [];
+    const params: unknown[] = [];
 
     if (thread_id) {
       conditions.push('thread_id = ?');
@@ -75,14 +76,32 @@ export function registerMessageRoutes(fastify: FastifyInstance): void {
       conditions.push('agent_role IS NULL');
     }
 
-    if (conditions.length > 0) {
-      sql += ' WHERE ' + conditions.join(' AND ');
+    const lim = parseInt(limit, 10);
+
+    let rows: Record<string, unknown>[];
+
+    if (before) {
+      // Cursor pagination: get messages older than `before`, returned in ASC order
+      const cursorRow = db.prepare('SELECT created_at FROM messages WHERE id = ?').get(before) as { created_at: number } | undefined;
+      if (cursorRow) {
+        conditions.push('created_at < ?');
+        params.push(cursorRow.created_at);
+      }
+      const where = conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : '';
+      // Fetch in DESC to get the N newest before the cursor, then reverse for ASC
+      rows = db.prepare(
+        `SELECT * FROM messages${where} ORDER BY created_at DESC LIMIT ?`
+      ).all(...params, lim) as Record<string, unknown>[];
+      rows.reverse();
+    } else {
+      // No cursor: return the most recent N messages (sub-select DESC, then flip to ASC)
+      const where = conditions.length > 0 ? ' WHERE ' + conditions.join(' AND ') : '';
+      const off = parseInt(offset, 10);
+      rows = db.prepare(
+        `SELECT * FROM (SELECT * FROM messages${where} ORDER BY created_at DESC LIMIT ? OFFSET ?) sub ORDER BY created_at ASC`
+      ).all(...params, lim, off) as Record<string, unknown>[];
     }
 
-    sql += ' ORDER BY created_at ASC LIMIT ? OFFSET ?';
-    params.push(parseInt(limit, 10), parseInt(offset, 10));
-
-    const rows = db.prepare(sql).all(...params) as Record<string, unknown>[];
     const messageIds = rows.map(r => r['id'] as string);
     const reactionsMap = getReactionsForMessages(db, messageIds);
 
@@ -175,5 +194,33 @@ export function registerMessageRoutes(fastify: FastifyInstance): void {
     };
     io?.emit('message:reaction', { messageId, reaction, action: 'remove' });
     return { ok: true };
+  });
+
+  // ─── Read Markers ────────────────────────────────────────
+
+  // Get last-read marker for a scope
+  fastify.get('/api/read-markers/:scopeKey', async (request) => {
+    const { scopeKey } = request.params as { scopeKey: string };
+    const row = db.prepare(
+      'SELECT last_read_message_id, updated_at FROM read_markers WHERE scope_key = ?'
+    ).get(scopeKey) as { last_read_message_id: string; updated_at: number } | undefined;
+
+    if (!row) return { lastReadMessageId: null, updatedAt: null };
+    return { lastReadMessageId: row.last_read_message_id, updatedAt: row.updated_at };
+  });
+
+  // Upsert last-read marker for a scope
+  fastify.put('/api/read-markers/:scopeKey', async (request) => {
+    const { scopeKey } = request.params as { scopeKey: string };
+    const { lastReadMessageId } = request.body as { lastReadMessageId: string };
+    const now = Date.now();
+
+    db.prepare(
+      `INSERT INTO read_markers (id, scope_key, last_read_message_id, updated_at)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(scope_key) DO UPDATE SET last_read_message_id = excluded.last_read_message_id, updated_at = excluded.updated_at`
+    ).run(uuid(), scopeKey, lastReadMessageId, now);
+
+    return { lastReadMessageId, updatedAt: now };
   });
 }

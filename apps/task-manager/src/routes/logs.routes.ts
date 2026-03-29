@@ -1,8 +1,29 @@
 import type { FastifyInstance } from 'fastify';
-import { rowToTaskLog } from '../db/log-writer.js';
+import { rowToTaskLog, writeTaskLog } from '../db/log-writer.js';
 
 export function registerLogRoutes(fastify: FastifyInstance): void {
   const db = fastify.db;
+
+  // Write a log entry for a task (used by MCP agents)
+  fastify.post('/api/tasks/:guid/logs', async (request) => {
+    const { guid } = request.params as { guid: string };
+    const body = request.body as {
+      agentRole?: string;
+      action: string;
+      details?: string;
+      status?: string;
+    };
+
+    const log = writeTaskLog(db, fastify.io, {
+      taskGuid: guid,
+      agentRole: body.agentRole,
+      action: body.action,
+      details: body.details,
+      status: (body.status as 'info' | 'success' | 'error' | 'warning') || 'info',
+    });
+
+    return log;
+  });
 
   // Get logs for a task by GUID
   fastify.get('/api/tasks/:guid/logs', async (request) => {

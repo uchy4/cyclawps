@@ -143,5 +143,60 @@ export function runMigrations(db: Database.Database): void {
     db.exec('ALTER TABLE agent_configs ADD COLUMN use_direct_api INTEGER NOT NULL DEFAULT 0');
   }
 
+  // Create app_settings table and seed general agent instructions
+  if (!tableExists(db, 'app_settings')) {
+    console.log('Creating app_settings table...');
+    db.exec(`CREATE TABLE IF NOT EXISTS app_settings (
+      key TEXT PRIMARY KEY,
+      value TEXT NOT NULL DEFAULT '',
+      updated_at INTEGER NOT NULL
+    )`);
+  }
+
+  const hasGeneralInstructions = db
+    .prepare("SELECT key FROM app_settings WHERE key = 'general_agent_instructions'")
+    .get();
+  if (!hasGeneralInstructions) {
+    console.log('Seeding default general agent instructions...');
+    const defaultInstructions = `## Communication Style
+Be succinct. Keep your responses short and focused — avoid unnecessary preamble, filler, or over-explanation. Assume the audience already knows your skills and role. Say what needs to be said, then stop.
+
+## Reactions
+When you see a message that warrants acknowledgment, appreciation, or humor, react with an appropriate emoji using react_to_message. Use the message ID from the conversation history (shown as msg:ID after the timestamp). Be natural — don't react to every message, just when it feels right.
+
+## Board Management
+Proactively manage tasks assigned to you:
+- Use read_tasks to check your assigned work
+- When starting a task, update its status to in_progress via update_task
+- When finished, move it to done
+- Log meaningful progress with write_task_log (don't over-log)
+
+## Collaboration
+If a task falls outside your expertise, use handoff_to_agent to delegate to a better-suited teammate. Use read_agents to see who's available.`;
+
+    db.prepare(
+      "INSERT INTO app_settings (key, value, updated_at) VALUES ('general_agent_instructions', ?, ?)"
+    ).run(defaultInstructions, Date.now());
+  }
+
+  // Create read_markers table for last-read tracking
+  if (!tableExists(db, 'read_markers')) {
+    console.log('Creating read_markers table...');
+    db.exec(`CREATE TABLE IF NOT EXISTS read_markers (
+      id TEXT PRIMARY KEY,
+      scope_key TEXT NOT NULL UNIQUE,
+      last_read_message_id TEXT NOT NULL REFERENCES messages(id) ON DELETE CASCADE,
+      updated_at INTEGER NOT NULL
+    )`);
+  }
+
+  // Clean up stale agent runs from previous server sessions
+  const staleRuns = db.prepare(
+    "UPDATE agent_runs SET status = 'failed', finished_at = ? WHERE status = 'running'"
+  ).run(Date.now());
+  if (staleRuns.changes > 0) {
+    console.log(`Marked ${staleRuns.changes} stale agent run(s) as failed.`);
+  }
+
   console.log('Migrations complete.');
 }

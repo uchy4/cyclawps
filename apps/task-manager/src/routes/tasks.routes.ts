@@ -89,11 +89,14 @@ export function registerTaskRoutes(fastify: FastifyInstance): void {
     return task;
   });
 
-  // Update task
+  // Update task (accepts either UUID id or GUID like TASK-005)
   fastify.patch('/api/tasks/:id', async (request, reply) => {
     const { id } = request.params as { id: string };
     const input = request.body as UpdateTaskInput;
-    const existing = db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
+    // Support lookup by GUID (TASK-NNN) or internal UUID
+    const existing = id.startsWith('TASK-')
+      ? db.prepare('SELECT * FROM tasks WHERE guid = ?').get(id)
+      : db.prepare('SELECT * FROM tasks WHERE id = ?').get(id);
     if (!existing) return reply.code(404).send({ error: 'Task not found' });
 
     const fields: string[] = [];
@@ -110,7 +113,9 @@ export function registerTaskRoutes(fastify: FastifyInstance): void {
 
     fields.push('updated_at = ?');
     values.push(Date.now());
-    values.push(id);
+    // Use internal id for WHERE clause (param might be GUID)
+    const internalId = (existing as Record<string, unknown>)['id'] as string;
+    values.push(internalId);
 
     // Log status changes
     const existingTask = rowToTask(existing as Record<string, unknown>);
@@ -133,7 +138,7 @@ export function registerTaskRoutes(fastify: FastifyInstance): void {
 
     db.prepare(`UPDATE tasks SET ${fields.join(', ')} WHERE id = ?`).run(...values);
 
-    const task = rowToTask(db.prepare('SELECT * FROM tasks WHERE id = ?').get(id) as Record<string, unknown>);
+    const task = rowToTask(db.prepare('SELECT * FROM tasks WHERE id = ?').get(internalId) as Record<string, unknown>);
     io?.emit('task:updated', { task });
     return task;
   });

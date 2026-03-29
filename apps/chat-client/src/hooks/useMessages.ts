@@ -1,6 +1,13 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { Message, Reaction, Attachment } from '@app/shared';
 import { useSocket } from '@app/shared';
+import {
+  getScopeKey,
+  getCachedMessages,
+  setCachedMessages,
+  updateCachedMessages,
+  clearCachedMessages,
+} from './messageCache.js';
 
 export interface PendingAuth {
   taskId: string;
@@ -8,26 +15,77 @@ export interface PendingAuth {
   description: string;
 }
 
+const INITIAL_LOAD = 12;
+const OLDER_CHUNK = 30;
+
+function buildParams(threadId?: string, agentRole?: string): URLSearchParams {
+  const params = new URLSearchParams();
+  if (threadId) params.set('thread_id', threadId);
+  if (agentRole) params.set('agent_role', agentRole);
+  return params;
+}
+
 export function useMessages(threadId?: string, agentRole?: string) {
-  const [messages, setMessages] = useState<Message[]>([]);
-  const [loading, setLoading] = useState(true);
+  const scopeKey = getScopeKey(threadId, agentRole);
+  const scopeKeyRef = useRef(scopeKey);
+  scopeKeyRef.current = scopeKey;
+
+  // Seed from cache if available — skip loading state entirely
+  const cached = getCachedMessages(scopeKey);
+  const [messages, setMessages] = useState<Message[]>(cached || []);
+  const [loading, setLoading] = useState(!cached);
+  const [hasOlder, setHasOlder] = useState(true);
+  const [loadingOlder, setLoadingOlder] = useState(false);
   const [pendingAuths, setPendingAuths] = useState<PendingAuth[]>([]);
   const { socket, connected } = useSocket();
+  const threadEnvelopeRef = useRef<Record<string, unknown> | null>(null);
 
-  // Fetch messages, re-fetch when threadId or agentRole changes
+  // Helper: update both state and cache
+  const setMessagesAndCache = useCallback(
+    (updater: Message[] | ((prev: Message[]) => Message[])) => {
+      setMessages((prev) => {
+        const next = typeof updater === 'function' ? updater(prev) : updater;
+        setCachedMessages(scopeKeyRef.current, next);
+        return next;
+      });
+    },
+    []
+  );
+
+  // Fetch latest messages — on scope change
   useEffect(() => {
-    setLoading(true);
-    setMessages([]);
-    const params = new URLSearchParams({ limit: '200' });
-    if (threadId) params.set('thread_id', threadId);
-    if (agentRole) params.set('agent_role', agentRole);
+    const key = getScopeKey(threadId, agentRole);
+    const cachedMsgs = getCachedMessages(key);
+
+    if (cachedMsgs) {
+      // Show cache instantly, no loading
+      setMessages(cachedMsgs);
+      setLoading(false);
+    } else {
+      // Only set empty if not already empty to avoid a redundant render flash
+      setMessages((prev) => (prev.length === 0 ? prev : []));
+      setLoading(true);
+    }
+    setHasOlder(true);
+    threadEnvelopeRef.current = null;
+
+    const params = buildParams(threadId, agentRole);
+    params.set('limit', String(INITIAL_LOAD));
 
     fetch(`/api/messages?${params}`)
       .then((r) => r.json())
       .then((data) => {
-        // Thread endpoint returns an envelope { thread, messages }; others return a flat array
-        const msgs = Array.isArray(data) ? data : data.messages;
+        if (scopeKeyRef.current !== key) return; // scope changed while fetching
+        let msgs: Message[];
+        if (Array.isArray(data)) {
+          msgs = data;
+        } else {
+          msgs = data.messages;
+          threadEnvelopeRef.current = data.thread || null;
+        }
         setMessages(msgs);
+        setCachedMessages(key, msgs);
+        if (msgs.length < INITIAL_LOAD) setHasOlder(false);
         setLoading(false);
       })
       .catch((err) => {
@@ -35,6 +93,42 @@ export function useMessages(threadId?: string, agentRole?: string) {
         setLoading(false);
       });
   }, [threadId, agentRole]);
+
+  // Load older messages (prepend)
+  const loadOlder = useCallback(async (): Promise<boolean> => {
+    if (!hasOlder || loadingOlder) return false;
+
+    setLoadingOlder(true);
+    try {
+      const oldest = messages[0];
+      if (!oldest) { setLoadingOlder(false); return false; }
+
+      const params = buildParams(threadId, agentRole);
+      params.set('limit', String(OLDER_CHUNK));
+      params.set('before', oldest.id);
+
+      const res = await fetch(`/api/messages?${params}`);
+      const data = await res.json();
+      const olderMsgs: Message[] = Array.isArray(data) ? data : data.messages;
+
+      if (olderMsgs.length < OLDER_CHUNK) setHasOlder(false);
+
+      if (olderMsgs.length > 0) {
+        setMessagesAndCache((prev) => {
+          const existingIds = new Set(prev.map((m) => m.id));
+          const unique = olderMsgs.filter((m) => !existingIds.has(m.id));
+          return [...unique, ...prev];
+        });
+      }
+
+      return olderMsgs.length > 0;
+    } catch (err) {
+      console.error('Failed to load older messages:', err);
+      return false;
+    } finally {
+      setLoadingOlder(false);
+    }
+  }, [hasOlder, loadingOlder, messages, threadId, agentRole, setMessagesAndCache]);
 
   // Listen for real-time updates
   useEffect(() => {
@@ -45,26 +139,22 @@ export function useMessages(threadId?: string, agentRole?: string) {
       const msgThreadId = msgExtra['threadId'] as string | null | undefined;
       const msgAgentRole = msgExtra['agentRole'] as string | null | undefined;
 
+      let belongs = false;
       if (threadId) {
-        // Thread view: only show messages belonging to this thread
-        if (msgThreadId === threadId) {
-          setMessages((prev) => [...prev, message]);
-        }
+        belongs = msgThreadId === threadId;
       } else if (agentRole) {
-        // Agent DM channel: only show messages for this agent role
-        if (msgAgentRole === agentRole || message.senderName === agentRole) {
-          setMessages((prev) => [...prev, message]);
-        }
+        belongs = msgAgentRole === agentRole || message.senderName === agentRole;
       } else {
-        // Global chat: only show messages with no thread and no agent_role
-        if (!msgThreadId && !msgAgentRole) {
-          setMessages((prev) => [...prev, message]);
-        }
+        belongs = !msgThreadId && !msgAgentRole;
+      }
+
+      if (belongs) {
+        setMessagesAndCache((prev) => [...prev, message]);
       }
     };
 
     const onReaction = ({ messageId, reaction, action }: { messageId: string; reaction: Reaction; action: 'add' | 'remove' }) => {
-      setMessages((prev) =>
+      setMessagesAndCache((prev) =>
         prev.map((msg) => {
           if (msg.id !== messageId) return msg;
           if (action === 'add') {
@@ -77,13 +167,13 @@ export function useMessages(threadId?: string, agentRole?: string) {
     };
 
     const onEdited = ({ messageId, content }: { messageId: string; content: string }) => {
-      setMessages((prev) =>
+      setMessagesAndCache((prev) =>
         prev.map((msg) => msg.id === messageId ? { ...msg, content } : msg)
       );
     };
 
     const onDeleted = ({ messageId }: { messageId: string }) => {
-      setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
+      setMessagesAndCache((prev) => prev.filter((msg) => msg.id !== messageId));
     };
 
     socket.on('message:new', onMessage);
@@ -107,7 +197,7 @@ export function useMessages(threadId?: string, agentRole?: string) {
       socket.off('pipeline:auth_required');
       socket.off('pipeline:completed');
     };
-  }, [socket, threadId, agentRole]);
+  }, [socket, threadId, agentRole, setMessagesAndCache]);
 
   const sendMessage = useCallback(
     (content: string, msgThreadId?: string, inReplyTo?: string, attachments?: Attachment[], msgAgentRole?: string) => {
@@ -153,20 +243,38 @@ export function useMessages(threadId?: string, agentRole?: string) {
   );
 
   const refreshMessages = useCallback(() => {
+    const key = getScopeKey(threadId, agentRole);
+    clearCachedMessages(key);
     setLoading(true);
     setMessages([]);
-    const params = new URLSearchParams({ limit: '200' });
-    if (threadId) params.set('thread_id', threadId);
-    if (agentRole) params.set('agent_role', agentRole);
+    setHasOlder(true);
+    const params = buildParams(threadId, agentRole);
+    params.set('limit', String(INITIAL_LOAD));
     fetch(`/api/messages?${params}`)
       .then((r) => r.json())
       .then((data) => {
         const msgs = Array.isArray(data) ? data : data.messages;
         setMessages(msgs);
+        setCachedMessages(key, msgs);
+        if (msgs.length < INITIAL_LOAD) setHasOlder(false);
         setLoading(false);
       })
       .catch(() => setLoading(false));
   }, [threadId, agentRole]);
 
-  return { messages, loading, connected, pendingAuths, sendMessage, editMessage, deleteMessage, toggleReaction, authorize, refreshMessages };
+  return {
+    messages,
+    loading,
+    connected,
+    pendingAuths,
+    hasOlder,
+    loadingOlder,
+    sendMessage,
+    editMessage,
+    deleteMessage,
+    toggleReaction,
+    authorize,
+    refreshMessages,
+    loadOlder,
+  };
 }

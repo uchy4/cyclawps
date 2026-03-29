@@ -44,6 +44,9 @@ export class AgentDispatcher {
   // Cooldown tracking to prevent rapid re-invocation
   private lastInvocation = new Map<string, number>();
 
+  // Track cooldown retry timers for cleanup
+  private cooldownTimers = new Map<string, ReturnType<typeof setTimeout>>();
+
   constructor(
     db: Database.Database,
     io: Server<ClientToServerEvents, ServerToClientEvents>,
@@ -101,10 +104,12 @@ export class AgentDispatcher {
     if (cooldownRemaining > 0) {
       console.log(`[dispatcher] Cooldown active for ${agentRole} (${Math.ceil(cooldownRemaining / 1000)}s remaining), scheduling retry`);
       // Auto-retry after cooldown expires
-      setTimeout(() => {
+      const timer = setTimeout(() => {
+        this.cooldownTimers.delete(cooldownKey);
         console.log(`[dispatcher] Cooldown expired, auto-triggering ${agentRole}`);
         this.invokeAgent(agentRole, threadId, agentRoleChannel, depth);
       }, cooldownRemaining + 100);
+      this.cooldownTimers.set(cooldownKey, timer);
       return;
     }
 
@@ -200,5 +205,24 @@ export class AgentDispatcher {
       console.error(`Queue error for ${agentRole}:`, err);
     });
     this.queues.set(agentRole, next);
+  }
+
+  /**
+   * Cleans up all timers and queues for graceful shutdown.
+   */
+  destroy(): void {
+    for (const timer of this.debounceTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.debounceTimers.clear();
+
+    for (const timer of this.cooldownTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.cooldownTimers.clear();
+
+    this.queues.clear();
+    this.lastInvocation.clear();
+    console.log('[dispatcher] Destroyed — all timers and queues cleared');
   }
 }

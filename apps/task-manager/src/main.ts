@@ -24,7 +24,7 @@ import { registerThreadRoutes } from './routes/threads.routes.js';
 import { registerArchiveRoutes } from './routes/archives.routes.js';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { seedAgents } from '@app/agents';
+import { seedAgents, killAllAgentProcesses } from '@app/agents';
 import { seedTasks } from './db/seed-tasks.js';
 import { seedMessages } from './db/seed-messages.js';
 import { seedThreads } from './db/seed-threads.js';
@@ -106,8 +106,7 @@ async function main() {
 
   // Set up dispatcher and wire handoffs
   const dispatcher = new AgentDispatcher(db, io, agentRunner);
-  // Store dispatcher on the server instance for route access (can't use decorate after start)
-  (fastify as unknown as { dispatcher: AgentDispatcher }).dispatcher = dispatcher;
+  fastify.dispatcher = dispatcher;
   agentRunner.setHandoffCallback((targetRole, threadId, agentRoleChannel, depth) => {
     dispatcher.invokeAgent(targetRole, threadId, agentRoleChannel, depth);
   });
@@ -118,6 +117,15 @@ async function main() {
   // Graceful shutdown
   const shutdown = async (signal: string) => {
     console.log(`Received ${signal}, shutting down gracefully...`);
+
+    // Force exit after 10s if graceful shutdown hangs
+    setTimeout(() => {
+      console.error('Graceful shutdown timed out, forcing exit');
+      process.exit(1);
+    }, 10_000).unref();
+
+    dispatcher.destroy();
+    await killAllAgentProcesses();
     io.close();
     await fastify.close();
     closeDb();

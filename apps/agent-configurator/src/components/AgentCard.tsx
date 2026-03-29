@@ -7,7 +7,7 @@ interface AgentCardProps {
 }
 
 export function AgentCard({ agent, onClick }: AgentCardProps) {
-  const color = ROLE_COLORS[agent.role] || '#8b949e';
+  const color = agent.accentColor || ROLE_COLORS[agent.role] || '#8b949e';
   const initials = (agent.displayName || agent.name).slice(0, 2).toUpperCase();
 
   return (

@@ -95,6 +95,19 @@ export function registerAgentRoutes(fastify: FastifyInstance): void {
     return { success: true };
   });
 
+  // Get currently running agent invocations (ignore stale runs older than 10 minutes)
+  fastify.get('/api/agents/running', async () => {
+    const staleThreshold = Date.now() - 10 * 60 * 1000;
+    const rows = db.prepare(
+      "SELECT agent_role, task_id, started_at FROM agent_runs WHERE status = 'running' AND started_at > ? ORDER BY started_at DESC"
+    ).all(staleThreshold) as Array<{ agent_role: string; task_id: string | null; started_at: number }>;
+    return rows.map((r) => ({
+      role: r.agent_role,
+      taskId: r.task_id,
+      startedAt: r.started_at,
+    }));
+  });
+
   // Reset agents to seed defaults
   fastify.post('/api/agents/reset', async () => {
     // TODO: Wire to seed module in Phase 4
@@ -115,5 +128,70 @@ export function registerAgentRoutes(fastify: FastifyInstance): void {
     });
 
     return { message: 'Agent invocation started', role, taskId };
+  });
+
+  // Handoff from one agent to another (used by MCP agents)
+  fastify.post('/api/agents/handoff', async (request) => {
+    const body = request.body as {
+      fromAgent: string;
+      targetAgent: string;
+      reason: string;
+      threadId?: string | null;
+      agentRoleChannel?: string | null;
+    };
+
+    const target = db.prepare('SELECT * FROM agent_configs WHERE role = ?').get(body.targetAgent);
+    if (!target) {
+      return { error: `Agent not found: ${body.targetAgent}` };
+    }
+
+    // Post system message about the handoff
+    const msgId = uuid();
+    const now = Date.now();
+    db.prepare(
+      `INSERT INTO messages (id, sender_type, sender_name, content, thread_id, agent_role, created_at)
+       VALUES (?, 'system', 'system', ?, ?, ?, ?)`
+    ).run(msgId, `${body.fromAgent} handed off to ${body.targetAgent}: ${body.reason}`, body.threadId || null, body.agentRoleChannel || null, now);
+
+    io.emit('message:new', {
+      message: {
+        id: msgId,
+        senderType: 'system' as const,
+        senderName: 'system',
+        content: `${body.fromAgent} handed off to ${body.targetAgent}: ${body.reason}`,
+        taskId: null,
+        threadId: body.threadId || null,
+        inReplyTo: null,
+        attachments: [],
+        reactions: [],
+        createdAt: now,
+      },
+    });
+
+    // Trigger the target agent via dispatcher
+    if (fastify.dispatcher) {
+      fastify.dispatcher.invokeAgent(body.targetAgent, body.threadId || null, body.agentRoleChannel || null, 1);
+    }
+
+    return { message: `Handed off from ${body.fromAgent} to ${body.targetAgent}` };
+  });
+
+  // ─── General Agent Instructions (app_settings) ──────────────
+
+  fastify.get('/api/settings/general-instructions', async () => {
+    const row = db
+      .prepare("SELECT value, updated_at FROM app_settings WHERE key = 'general_agent_instructions'")
+      .get() as { value: string; updated_at: number } | undefined;
+    return { instructions: row?.value || '', updatedAt: row?.updated_at || null };
+  });
+
+  fastify.put('/api/settings/general-instructions', async (request) => {
+    const { instructions } = request.body as { instructions: string };
+    const now = Date.now();
+    db.prepare(
+      `INSERT INTO app_settings (key, value, updated_at) VALUES ('general_agent_instructions', ?, ?)
+       ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = excluded.updated_at`
+    ).run(instructions, now);
+    return { instructions, updatedAt: now };
   });
 }

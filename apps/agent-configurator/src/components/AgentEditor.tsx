@@ -32,6 +32,42 @@ const TOOL_DESCRIPTIONS: Record<string, string> = {
 const inputClass = 'w-full px-3 py-2 rounded-lg border border-zinc-700 bg-zinc-800 text-white placeholder-zinc-400 text-sm focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:outline-none transition-colors';
 const labelClass = 'block text-sm font-medium text-zinc-300 mb-1.5';
 
+function AccordionSection({
+  title,
+  defaultOpen = false,
+  children,
+}: {
+  title: string;
+  defaultOpen?: boolean;
+  children: React.ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+
+  return (
+    <div className="border border-zinc-700 rounded-lg overflow-hidden">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between px-4 py-3 bg-zinc-800/50 hover:bg-zinc-800 transition-colors cursor-pointer"
+      >
+        <h3 className="text-sm font-semibold text-white uppercase tracking-wider">
+          {title}
+        </h3>
+        <svg
+          className={`h-4 w-4 text-zinc-400 transition-transform ${open ? 'rotate-180' : ''}`}
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2}
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+      {open && <div className="px-4 py-4 space-y-4">{children}</div>}
+    </div>
+  );
+}
+
 interface AgentEditorProps {
   editRole: string | null;
   onSave: () => void;
@@ -115,120 +151,109 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Basic Info Section */}
-      <section>
-        <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Identity</h3>
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="agent-name" className={labelClass}>Agent Name *</label>
-            <input id="agent-name" name="name" type="text" value={formData.name} onChange={(e) => updateField('name', e.target.value)} placeholder="e.g., Code Reviewer..." className={inputClass} />
-          </div>
-          <div>
-            <label htmlFor="display-name" className={labelClass}>Display Name / Persona</label>
-            <input id="display-name" name="displayName" type="text" value={formData.displayName || ''} onChange={(e) => updateField('displayName', e.target.value)} placeholder="e.g., Archie, Pam..." className={inputClass} />
-            <p className="text-xs text-zinc-500 mt-1">Optional friendly name shown in the UI</p>
-          </div>
-          <div>
-            <label htmlFor="agent-role" className={labelClass}>
-              Role Identifier * {editRole && <span className="text-red-400">(read-only)</span>}
-            </label>
-            <input id="agent-role" name="role" type="text" value={formData.role} onChange={(e) => updateField('role', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))} placeholder="e.g., code_reviewer..." disabled={!!editRole} className={`${inputClass} ${editRole ? 'opacity-50' : ''}`} />
-          </div>
-          <div>
-            <label htmlFor="agent-description" className={labelClass}>Description</label>
-            <textarea id="agent-description" name="description" value={formData.description || ''} onChange={(e) => updateField('description', e.target.value)} placeholder="What does this agent do..." rows={2} className={`${inputClass} resize-y`} />
-          </div>
-          <div>
-            <label className={labelClass}>Accent Color</label>
-            <div className="flex items-center gap-2 flex-wrap">
-              {PRESET_COLORS.map((c) => (
-                <button
-                  key={c}
-                  type="button"
-                  onClick={() => updateField('accentColor', c)}
-                  className={`w-7 h-7 rounded-full border-2 cursor-pointer transition-transform hover:scale-110 ${
-                    formData.accentColor === c ? 'border-white scale-110' : 'border-transparent'
-                  }`}
-                  style={{ backgroundColor: c }}
-                  title={c}
-                />
-              ))}
-              <div className="relative">
-                <input
-                  type="color"
-                  value={formData.accentColor || '#8b949e'}
-                  onChange={(e) => updateField('accentColor', e.target.value)}
-                  className="w-7 h-7 rounded-full cursor-pointer border-0 bg-transparent [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-2 [&::-webkit-color-swatch]:border-zinc-600"
-                  title="Custom color"
-                />
-              </div>
-            </div>
-            {formData.accentColor && (
-              <div className="flex items-center gap-2 mt-2">
-                <span className="w-4 h-4 rounded-full" style={{ backgroundColor: formData.accentColor }} />
-                <span className="text-xs text-zinc-400 font-mono">{formData.accentColor}</span>
-              </div>
-            )}
-          </div>
+    <div className="space-y-3">
+      {/* Identity Section */}
+      <AccordionSection title="Identity" defaultOpen={true}>
+        <div>
+          <label htmlFor="agent-name" className={labelClass}>Agent Name *</label>
+          <input id="agent-name" name="name" type="text" value={formData.name} onChange={(e) => updateField('name', e.target.value)} placeholder="e.g., Code Reviewer..." className={inputClass} />
         </div>
-      </section>
-
-      <hr className="border-zinc-700" />
-
-      {/* Model Section */}
-      <section>
-        <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Model & Config</h3>
-        <div className="space-y-4">
-          <div>
-            <label htmlFor="agent-model" className={labelClass}>Model</label>
-            <select
-              id="agent-model"
-              name="model"
-              value={KNOWN_MODEL_VALUES.has(formData.model || '') ? formData.model : '__other__'}
-              onChange={(e) => {
-                if (e.target.value === '__other__') {
-                  updateField('model', '');
-                } else {
-                  updateField('model', e.target.value);
-                }
-              }}
-              className={inputClass}
-            >
-              {MODELS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
-            </select>
-            {!KNOWN_MODEL_VALUES.has(formData.model || '') && (
-              <input
-                type="text"
-                value={formData.model || ''}
-                onChange={(e) => updateField('model', e.target.value)}
-                placeholder="e.g., claude-sonnet-4-5, gpt-4o..."
-                className={`${inputClass} mt-2`}
+        <div>
+          <label htmlFor="display-name" className={labelClass}>Display Name / Persona</label>
+          <input id="display-name" name="displayName" type="text" value={formData.displayName || ''} onChange={(e) => updateField('displayName', e.target.value)} placeholder="e.g., Archie, Pam..." className={inputClass} />
+          <p className="text-xs text-zinc-500 mt-1">Optional friendly name shown in the UI</p>
+        </div>
+        <div>
+          <label htmlFor="agent-role" className={labelClass}>
+            Role Identifier * {editRole && <span className="text-red-400">(read-only)</span>}
+          </label>
+          <input id="agent-role" name="role" type="text" value={formData.role} onChange={(e) => updateField('role', e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, '_'))} placeholder="e.g., code_reviewer..." disabled={!!editRole} className={`${inputClass} ${editRole ? 'opacity-50' : ''}`} />
+        </div>
+        <div>
+          <label htmlFor="agent-description" className={labelClass}>Description</label>
+          <textarea id="agent-description" name="description" value={formData.description || ''} onChange={(e) => updateField('description', e.target.value)} placeholder="What does this agent do..." rows={2} className={`${inputClass} resize-y`} />
+        </div>
+        <div>
+          <label className={labelClass}>Accent Color</label>
+          <div className="flex items-center gap-2 flex-wrap">
+            {PRESET_COLORS.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => updateField('accentColor', c)}
+                className={`w-7 h-7 rounded-full border-2 cursor-pointer transition-transform hover:scale-110 ${
+                  formData.accentColor === c ? 'border-white scale-110' : 'border-transparent'
+                }`}
+                style={{ backgroundColor: c }}
+                title={c}
               />
-            )}
+            ))}
+            <div className="relative">
+              <input
+                type="color"
+                value={formData.accentColor || '#8b949e'}
+                onChange={(e) => updateField('accentColor', e.target.value)}
+                className="w-7 h-7 rounded-full cursor-pointer border-0 bg-transparent [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-2 [&::-webkit-color-swatch]:border-zinc-600"
+                title="Custom color"
+              />
+            </div>
           </div>
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label htmlFor="api-key-env" className={labelClass}>API Key Env Var</label>
-              <input id="api-key-env" name="apiKeyEnv" type="text" value={formData.apiKeyEnv || ''} onChange={(e) => updateField('apiKeyEnv', e.target.value)} placeholder={`AGENT_${(formData.role || 'ROLE').toUpperCase()}_API_KEY`} className={inputClass} />
+          {formData.accentColor && (
+            <div className="flex items-center gap-2 mt-2">
+              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: formData.accentColor }} />
+              <span className="text-xs text-zinc-400 font-mono">{formData.accentColor}</span>
             </div>
-            <div>
-              <label htmlFor="max-turns" className={labelClass}>Max Turns</label>
-              <input id="max-turns" name="maxTurns" type="number" value={formData.maxTurns || 10} onChange={(e) => updateField('maxTurns', parseInt(e.target.value, 10) || 10)} min={1} max={100} className={inputClass} />
-            </div>
-            <div>
-              <label htmlFor="cooldown" className={labelClass}>Cooldown (sec)</label>
-              <input id="cooldown" name="cooldown" type="number" value={formData.cooldown ?? 5} onChange={(e) => updateField('cooldown', parseInt(e.target.value, 10) || 0)} min={0} max={300} className={inputClass} />
-            </div>
+          )}
+        </div>
+      </AccordionSection>
+
+      {/* Model & Config Section */}
+      <AccordionSection title="Model & Config">
+        <div>
+          <label htmlFor="agent-model" className={labelClass}>Model</label>
+          <select
+            id="agent-model"
+            name="model"
+            value={KNOWN_MODEL_VALUES.has(formData.model || '') ? formData.model : '__other__'}
+            onChange={(e) => {
+              if (e.target.value === '__other__') {
+                updateField('model', '');
+              } else {
+                updateField('model', e.target.value);
+              }
+            }}
+            className={inputClass}
+          >
+            {MODELS.map((m) => <option key={m.value} value={m.value}>{m.label}</option>)}
+          </select>
+          {!KNOWN_MODEL_VALUES.has(formData.model || '') && (
+            <input
+              type="text"
+              value={formData.model || ''}
+              onChange={(e) => updateField('model', e.target.value)}
+              placeholder="e.g., claude-sonnet-4-5, gpt-4o..."
+              className={`${inputClass} mt-2`}
+            />
+          )}
+        </div>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label htmlFor="api-key-env" className={labelClass}>API Key Env Var</label>
+            <input id="api-key-env" name="apiKeyEnv" type="text" value={formData.apiKeyEnv || ''} onChange={(e) => updateField('apiKeyEnv', e.target.value)} placeholder={`AGENT_${(formData.role || 'ROLE').toUpperCase()}_API_KEY`} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="max-turns" className={labelClass}>Max Turns</label>
+            <input id="max-turns" name="maxTurns" type="number" value={formData.maxTurns || 10} onChange={(e) => updateField('maxTurns', parseInt(e.target.value, 10) || 10)} min={1} max={100} className={inputClass} />
+          </div>
+          <div>
+            <label htmlFor="cooldown" className={labelClass}>Cooldown (sec)</label>
+            <input id="cooldown" name="cooldown" type="number" value={formData.cooldown ?? 5} onChange={(e) => updateField('cooldown', parseInt(e.target.value, 10) || 0)} min={0} max={300} className={inputClass} />
           </div>
         </div>
-      </section>
-
-      <hr className="border-zinc-700" />
+      </AccordionSection>
 
       {/* Tools Section */}
-      <section>
-        <h3 className="text-sm font-semibold text-white uppercase tracking-wider mb-4">Tools</h3>
+      <AccordionSection title="Tools">
         <div className="grid grid-cols-3 gap-2">
           {AVAILABLE_TOOLS.map((tool) => {
             const isSelected = (formData.tools || []).includes(tool);
@@ -250,13 +275,10 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
             );
           })}
         </div>
-      </section>
-
-      <hr className="border-zinc-700" />
+      </AccordionSection>
 
       {/* System Prompt Section */}
-      <section>
-        <label htmlFor="system-prompt" className="text-sm font-semibold text-white uppercase tracking-wider mb-4 block">System Prompt</label>
+      <AccordionSection title="System Prompt">
         <textarea
           id="system-prompt"
           name="systemPrompt"
@@ -266,7 +288,7 @@ export function AgentEditor({ editRole, onSave, onDelete }: AgentEditorProps) {
           rows={12}
           className={`${inputClass} font-mono text-[13px] leading-relaxed resize-y`}
         />
-      </section>
+      </AccordionSection>
 
       {/* Actions */}
       <div className="flex items-center gap-3 pt-4 border-t border-zinc-700">

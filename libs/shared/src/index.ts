@@ -9,3 +9,5 @@ export * from './ws-events.js';
 export { useSocket } from './hooks/useSocket.js';
 export { Drawer } from './components/Drawer.js';
 export { Modal } from './components/Modal.js';
+export { ErrorBoundary } from './components/ErrorBoundary.js';
+export { Skeleton } from './components/Skeleton.js';
