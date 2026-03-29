@@ -114,19 +114,33 @@ export function registerMessageRoutes(fastify: FastifyInstance): void {
 
   // Create message
   fastify.post('/api/messages', async (request) => {
-    const input = request.body as { senderType: string; senderName: string; content: string; taskId?: string; threadId?: string; inReplyTo?: string; attachments?: Attachment[] };
+    const input = request.body as { senderType: string; senderName: string; content: string; taskId?: string; threadId?: string; agentRole?: string; inReplyTo?: string; attachments?: Attachment[] };
     const now = Date.now();
     const id = uuid();
 
     db.prepare(
-      `INSERT INTO messages (id, sender_type, sender_name, content, task_id, thread_id, in_reply_to, attachments, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(id, input.senderType, input.senderName, input.content, input.taskId || null, input.threadId || null, input.inReplyTo || null, JSON.stringify(input.attachments || []), now);
+      `INSERT INTO messages (id, sender_type, sender_name, content, task_id, thread_id, agent_role, in_reply_to, attachments, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(id, input.senderType, input.senderName, input.content, input.taskId || null, input.threadId || null, input.agentRole || null, input.inReplyTo || null, JSON.stringify(input.attachments || []), now);
 
     const message = rowToMessage(
       db.prepare('SELECT * FROM messages WHERE id = ?').get(id) as Record<string, unknown>
     );
     io?.emit('message:new', { message });
+
+    // Dispatch to agents if user message
+    if (input.senderType === 'user' && (fastify as unknown as { dispatcher?: { onMessage: (m: unknown) => void } }).dispatcher) {
+      (fastify as unknown as { dispatcher: { onMessage: (m: unknown) => void } }).dispatcher.onMessage({
+        id,
+        senderType: 'user',
+        senderName: input.senderName,
+        content: input.content,
+        taskId: input.taskId || null,
+        threadId: input.threadId || null,
+        agentRole: input.agentRole || null,
+      });
+    }
+
     return message;
   });
 

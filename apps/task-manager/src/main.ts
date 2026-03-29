@@ -33,7 +33,7 @@ import type { ServerToClientEvents, ClientToServerEvents } from '@app/shared';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = path.resolve(__dirname, '../../..');
 
-const PORT = parseInt(process.env['TASK_MANAGER_PORT'] || '3001', 10);
+const PORT = parseInt(process.env['TASK_MANAGER_PORT'] || '3000', 10);
 
 async function main() {
   const fastify = Fastify({ logger: true });
@@ -106,6 +106,8 @@ async function main() {
 
   // Set up dispatcher and wire handoffs
   const dispatcher = new AgentDispatcher(db, io, agentRunner);
+  // Store dispatcher on the server instance for route access (can't use decorate after start)
+  (fastify as unknown as { dispatcher: AgentDispatcher }).dispatcher = dispatcher;
   agentRunner.setHandoffCallback((targetRole, threadId, agentRoleChannel, depth) => {
     dispatcher.invokeAgent(targetRole, threadId, agentRoleChannel, depth);
   });
