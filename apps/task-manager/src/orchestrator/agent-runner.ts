@@ -114,27 +114,33 @@ export class AgentRunner {
       });
     }
 
-    // Insert agent's output as a message
-    const messageId = uuid();
-    this.db.prepare(
-      `INSERT INTO messages (id, sender_type, sender_name, content, task_id, created_at)
-       VALUES (?, 'agent', ?, ?, ?, ?)`
-    ).run(messageId, agentRole, result.output, taskId, finishedAt);
+    // Insert agent's output as a message — skip if agent already posted via send_message MCP tool
+    const mcpPosted = (this.db.prepare(
+      `SELECT COUNT(*) as count FROM messages WHERE sender_name = ? AND sender_type = 'agent' AND created_at >= ? AND created_at <= ?`
+    ).get(agentRole, now, finishedAt) as { count: number }).count > 0;
 
-    this.io.emit('message:new', {
-      message: {
-        id: messageId,
-        senderType: 'agent' as const,
-        senderName: agentRole,
-        content: result.output,
-        taskId,
-        threadId: null,
-        inReplyTo: null,
-        attachments: [],
-        reactions: [],
-        createdAt: finishedAt,
-      },
-    });
+    if (!mcpPosted) {
+      const messageId = uuid();
+      this.db.prepare(
+        `INSERT INTO messages (id, sender_type, sender_name, content, task_id, created_at)
+         VALUES (?, 'agent', ?, ?, ?, ?)`
+      ).run(messageId, agentRole, result.output, taskId, finishedAt);
+
+      this.io.emit('message:new', {
+        message: {
+          id: messageId,
+          senderType: 'agent' as const,
+          senderName: agentRole,
+          content: result.output,
+          taskId,
+          threadId: null,
+          inReplyTo: null,
+          attachments: [],
+          reactions: [],
+          createdAt: finishedAt,
+        },
+      });
+    }
 
     return result;
   }
@@ -200,9 +206,13 @@ export class AgentRunner {
       result.output, finishedAt, result.tokensUsed || null, runId
     );
 
-    // Only post a message if the agent produced text output.
-    // A silent result (empty output) means the agent reacted-only — no chat message needed.
-    if (result.output.trim()) {
+    // Only post a message if the agent produced text output AND didn't already
+    // post via the send_message MCP tool (which would cause a duplicate).
+    const mcpPosted = (this.db.prepare(
+      `SELECT COUNT(*) as count FROM messages WHERE sender_name = ? AND sender_type = 'agent' AND created_at >= ? AND created_at <= ?`
+    ).get(agentRole, now, finishedAt) as { count: number }).count > 0;
+
+    if (result.output.trim() && !mcpPosted) {
       const messageId = uuid();
       this.db.prepare(
         `INSERT INTO messages (id, sender_type, sender_name, content, thread_id, agent_role, created_at)
