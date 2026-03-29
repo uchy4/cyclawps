@@ -22,7 +22,16 @@
     "dev": {
       "executor": "nx:run-commands",
       "options": {
-        "command": "trap 'kill 0' SIGINT SIGTERM; unset ANTHROPIC_API_KEY; NX_DAEMON=false nx run-many --target=serve --projects=task-manager,dashboard,whisper-service --parallel & wait"
+        "commands": [
+          "npm exec nx run task-manager:serve",
+          "npm exec nx run dashboard:serve",
+          "npm exec nx run whisper-service:serve"
+        ],
+        "parallel": true,
+        "env": {
+          "NX_DAEMON": "false",
+          "ANTHROPIC_API_KEY": ""
+        }
       }
     },
     "kill-ports": {

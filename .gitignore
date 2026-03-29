@@ -5,6 +5,7 @@ data/
 *.db
 models/
 .venv/
+__pycache__/
 .nx/
 .vite/
 

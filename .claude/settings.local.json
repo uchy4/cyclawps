@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -m venv .venv)",
+      "Bash(python -m venv /c/Users/joshu/Repos/cyclawps/apps/whisper-service/.venv)",
+      "Read(//c/Users/joshu/Repos/cyclawps/apps/whisper-service/.venv//**)",
+      "Bash(/c/Users/joshu/Repos/cyclawps/apps/whisper-service/.venv/Scripts/pip install:*)",
+      "Bash(npm rebuild:*)",
+      "Read(//c/Users/joshu/Repos/cyclawps/**)"
+    ]
+  }
+}

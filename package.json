@@ -9,7 +9,7 @@
     "build": "nx run-many --target=build --all",
     "desktop:make": "nx run desktop:make",
     "kill-ports": "nx run dashboard:kill-ports",
-    "postinstall": "electron-builder install-app-deps"
+    "postinstall": "electron-builder install-app-deps && npm rebuild better-sqlite3 && nx run whisper-service:setup"
   },
   "private": true,
   "devDependencies": {
