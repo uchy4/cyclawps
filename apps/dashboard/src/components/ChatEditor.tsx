@@ -200,7 +200,7 @@ export const ChatEditor = forwardRef<ChatEditorHandle, ChatEditorProps>(
 
     // Update placeholder dynamically
     useEffect(() => {
-      if (!editor) return;
+      if (!editor || editor.isDestroyed || !editor.view?.dom) return;
       const placeholderExt = editor.extensionManager.extensions.find(
         (ext) => ext.name === 'placeholder'
       );

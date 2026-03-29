@@ -397,16 +397,6 @@ export function ChatView() {
   // Build a message lookup for reply targets
   const messageMap = new Map(messages.map((m) => [m.id, m]));
 
-  // Animated ellipsis for transcribing state
-  const [dots, setDots] = useState(0);
-  useEffect(() => {
-    if (!whisper.isTranscribing) {
-      setDots(0);
-      return;
-    }
-    const interval = setInterval(() => setDots((d) => (d + 1) % 4), 400);
-    return () => clearInterval(interval);
-  }, [whisper.isTranscribing]);
 
   const placeholderText = 'Type a message...';
 
@@ -662,7 +652,7 @@ export function ChatView() {
                     ))
                 }
                 <span className="ml-3 text-base text-orange-400">
-                  {whisper.isRecording ? 'Listening...' : `Transcribing${'.'.repeat(dots)}`}
+                  {whisper.isRecording ? 'Listening...' : 'Transcribing...'}
                 </span>
               </div>
             ) : (

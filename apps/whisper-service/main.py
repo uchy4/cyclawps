@@ -38,13 +38,16 @@ async def transcribe(file: UploadFile = File(...)):
     elif "mp4" in ct:
         suffix = ".mp4"
 
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=True) as tmp:
+    tmp = tempfile.NamedTemporaryFile(suffix=suffix, delete=False)
+    try:
         tmp.write(audio_bytes)
-        tmp.flush()
+        tmp.close()
 
         m = get_model()
         segments, info = m.transcribe(tmp.name, language="en", beam_size=5)
         text = " ".join(seg.text.strip() for seg in segments)
+    finally:
+        os.unlink(tmp.name)
 
     return {"text": text}
 

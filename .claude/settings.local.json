@@ -6,7 +6,8 @@
       "Read(//c/Users/joshu/Repos/cyclawps/apps/whisper-service/.venv//**)",
       "Bash(/c/Users/joshu/Repos/cyclawps/apps/whisper-service/.venv/Scripts/pip install:*)",
       "Bash(npm rebuild:*)",
-      "Read(//c/Users/joshu/Repos/cyclawps/**)"
+      "Read(//c/Users/joshu/Repos/cyclawps/**)",
+      "Bash(curl -s http://localhost:4002/health)"
     ]
   }
 }
