@@ -146,7 +146,8 @@ export class AgentRunner {
     agentRole: string,
     threadId: string | null,
     agentRoleChannel: string | null,
-    handoffDepth = 0
+    handoffDepth = 0,
+    isPrimary = true
   ): Promise<{ success: boolean; output: string }> {
     const config = loadAgentConfig(this.db, agentRole);
     if (!config) {
@@ -167,7 +168,7 @@ export class AgentRunner {
     }
 
     const prompt = buildChatPrompt(this.db, config, {
-      threadId, agentRole: agentRoleChannel, threadName, threadParticipants,
+      threadId, agentRole: agentRoleChannel, threadName, threadParticipants, isPrimary,
     });
 
     const runId = uuid();
@@ -199,27 +200,30 @@ export class AgentRunner {
       result.output, finishedAt, result.tokensUsed || null, runId
     );
 
-    // Insert agent's response as a message
-    const messageId = uuid();
-    this.db.prepare(
-      `INSERT INTO messages (id, sender_type, sender_name, content, thread_id, agent_role, created_at)
-       VALUES (?, 'agent', ?, ?, ?, ?, ?)`
-    ).run(messageId, agentRole, result.output, threadId || null, agentRoleChannel || null, finishedAt);
+    // Only post a message if the agent produced text output.
+    // A silent result (empty output) means the agent reacted-only — no chat message needed.
+    if (result.output.trim()) {
+      const messageId = uuid();
+      this.db.prepare(
+        `INSERT INTO messages (id, sender_type, sender_name, content, thread_id, agent_role, created_at)
+         VALUES (?, 'agent', ?, ?, ?, ?, ?)`
+      ).run(messageId, agentRole, result.output, threadId || null, agentRoleChannel || null, finishedAt);
 
-    this.io.emit('message:new', {
-      message: {
-        id: messageId,
-        senderType: 'agent' as const,
-        senderName: agentRole,
-        content: result.output,
-        taskId: null,
-        threadId: threadId || null,
-        inReplyTo: null,
-        attachments: [],
-        reactions: [],
-        createdAt: finishedAt,
-      },
-    });
+      this.io.emit('message:new', {
+        message: {
+          id: messageId,
+          senderType: 'agent' as const,
+          senderName: agentRole,
+          content: result.output,
+          taskId: null,
+          threadId: threadId || null,
+          inReplyTo: null,
+          attachments: [],
+          reactions: [],
+          createdAt: finishedAt,
+        },
+      });
+    }
 
     this.io.emit('agent:status', { role: agentRole, status: 'completed' });
 

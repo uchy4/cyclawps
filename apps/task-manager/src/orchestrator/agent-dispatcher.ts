@@ -88,7 +88,8 @@ export class AgentDispatcher {
     agentRole: string,
     threadId: string | null,
     agentRoleChannel: string | null,
-    depth = 0
+    depth = 0,
+    isPrimary = true
   ): void {
     if (depth >= 3) {
       console.warn(`Handoff depth limit reached for ${agentRole}, skipping`);
@@ -113,12 +114,12 @@ export class AgentDispatcher {
       return;
     }
 
-    console.log(`[dispatcher] Queuing ${agentRole} invocation`);
+    console.log(`[dispatcher] Queuing ${agentRole} invocation (primary=${isPrimary})`);
     this.enqueue(agentRole, async () => {
       this.lastInvocation.set(cooldownKey, Date.now());
       try {
         console.log(`[dispatcher] Starting ${agentRole} runForChat`);
-        await this.runner.runForChat(agentRole, threadId, agentRoleChannel, depth);
+        await this.runner.runForChat(agentRole, threadId, agentRoleChannel, depth, isPrimary);
         console.log(`[dispatcher] Finished ${agentRole} runForChat`);
       } catch (err) {
         console.error(`[dispatcher] Agent ${agentRole} chat invocation failed:`, err);
@@ -134,21 +135,20 @@ export class AgentDispatcher {
       targetRoles.add(message.agentRole);
     }
 
-    // 2. @mention detection
+    // 2. Mention detection — catches both @Devin and plain "devin"/"hey devin" forms
     const mentionedRoles = this.detectMentions(message.content);
     for (const role of mentionedRoles) {
       targetRoles.add(role);
     }
 
-    // 3. Thread participants (only if no explicit mentions — avoids double-responding)
+    // 3. Thread participants — only if no one was explicitly named.
+    //    When a message names a specific agent, only that agent responds.
     if (message.threadId && targetRoles.size === 0) {
-      const participants = this.getThreadParticipants(message.threadId);
-      for (const role of participants) {
+      for (const role of this.getThreadParticipants(message.threadId)) {
         targetRoles.add(role);
       }
     }
 
-    // Invoke each target agent
     for (const role of targetRoles) {
       this.invokeAgent(role, message.threadId || null, message.agentRole || null);
     }
@@ -158,32 +158,31 @@ export class AgentDispatcher {
    * Detects @mentions in message content and returns matching agent roles.
    */
   private detectMentions(content: string): string[] {
-    const mentionPattern = /@(\w+)/g;
     const mentions: string[] = [];
-    let match: RegExpExecArray | null;
+    const lower = content.toLowerCase();
 
     // Load all agent names for matching
     const agents = this.db
       .prepare('SELECT role, name, display_name FROM agent_configs')
       .all() as AgentNameRow[];
 
+    // Build a map of every recognizable name → role
     const roleMap = new Map<string, string>();
     for (const agent of agents) {
-      // Match by role directly
       roleMap.set(agent.role.toLowerCase(), agent.role);
-      // Match by name
       roleMap.set(agent.name.toLowerCase(), agent.role);
-      // Match by display name (with underscores replacing spaces, as used in mentions)
       if (agent.display_name) {
-        roleMap.set(agent.display_name.toLowerCase().replace(/\s+/g, '_'), agent.role);
         roleMap.set(agent.display_name.toLowerCase(), agent.role);
+        roleMap.set(agent.display_name.toLowerCase().replace(/\s+/g, '_'), agent.role);
       }
     }
 
-    while ((match = mentionPattern.exec(content)) !== null) {
-      const mentioned = match[1].toLowerCase();
-      const role = roleMap.get(mentioned);
-      if (role) mentions.push(role);
+    // Check every known name as a whole word in the message (with or without @)
+    for (const [key, role] of roleMap) {
+      const pattern = new RegExp(`(?:^|[\\s,@])${key}(?:[\\s,!?.]|$)`, 'i');
+      if (pattern.test(lower)) {
+        mentions.push(role);
+      }
     }
 
     return [...new Set(mentions)];

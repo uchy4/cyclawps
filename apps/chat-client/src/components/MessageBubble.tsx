@@ -4,6 +4,13 @@ import { ROLE_COLORS, formatRoleName } from '@app/shared';
 import { Paperclip, Reply, SmilePlus, ChevronDown, ArrowUpRight, Pencil, Trash2 } from 'lucide-react';
 import { MarkdownRenderer } from './MarkdownRenderer.js';
 
+import emojiData from 'unicode-emoji-json';
+
+function getEmojiName(emoji: string): string {
+  const entry = (emojiData as Record<string, { name: string }>)[emoji];
+  return entry?.name || emoji;
+}
+
 interface MessageBubbleProps {
   message: Message;
   replyTarget?: Message | null;
@@ -212,6 +219,7 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
                     <button
                       key={emoji}
                       onClick={() => onReact?.(message.id, emoji)}
+                      title={getEmojiName(emoji)}
                       className="flex items-center gap-0.5 text-sm px-2 py-0.5 h-7 rounded-full border cursor-pointer transition-colors"
                       style={{
                         borderColor: `${reactorColor}60`,

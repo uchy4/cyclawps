@@ -172,7 +172,8 @@ function runCli(
         || output.includes('authentication_error')
         || stderrOutput.includes('OAuth token has expired');
 
-      if (code === 0 && output) {
+      if (code === 0) {
+        // Empty output is valid — agent may have only called MCP tools (e.g. react-only)
         resolve({ success: true, output });
       } else {
         const errorMsg = output.trim() || stderrOutput.trim() || `CLI exited with code ${code}`;

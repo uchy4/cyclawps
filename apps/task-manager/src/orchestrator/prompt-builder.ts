@@ -143,6 +143,7 @@ export function buildChatPrompt(
     agentRole?: string | null;
     threadName?: string | null;
     threadParticipants?: string[];
+    isPrimary?: boolean;
   }
 ): string {
   const parts: string[] = [];
@@ -181,6 +182,13 @@ export function buildChatPrompt(
   if (messages.length > 0) {
     parts.push(`\n## Recent Messages`);
     parts.push(formatMessages(messages));
+  }
+
+  // If this agent was NOT the primary recipient (another agent was @mentioned),
+  // instruct them to react-only and produce no text reply.
+  if (opts.isPrimary === false) {
+    parts.push(`\n## Your Role in This Message`);
+    parts.push(`You are NOT the primary recipient of the latest message — it was directed at another agent. React to the latest user message with your personality emoji using react_to_message, then produce NO text reply. Do not say anything. Just react and stop.`);
   }
 
   // Directive instructions
