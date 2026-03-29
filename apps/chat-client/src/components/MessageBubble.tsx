@@ -117,14 +117,8 @@ export function MessageBubble({ message, replyTarget, onReact, onReply, onEdit, 
         {/* Message bubble */}
         <div className="relative">
           <div
-            className={`px-3.5 py-2.5 text-base leading-normal break-words ${
-              isConsecutive
-                ? isUser
-                  ? 'bg-zinc-700/50 rounded-lg'
-                  : 'bg-zinc-800/50 border border-zinc-700 rounded-lg'
-                : isUser
-                  ? 'bg-zinc-700/50 rounded-xl'
-                  : 'bg-zinc-800/50 border border-zinc-700 rounded-xl'
+            className={`px-3.5 py-2.5 text-base leading-normal break-words rounded-xl ${
+              isUser ? 'bg-zinc-700/50' : 'bg-zinc-800/50 border border-zinc-700'
             }`}
             style={borderStyle}
           >
